@@ -224,14 +224,16 @@ main#main-content {
   flex: 1;
 }
 
+/* Carril: carrusel automático tipo slider */
 .featured {
-  padding: 16px 16px 8px;
+  padding: 0;
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .featured-head {
-  margin-bottom: 14px;
+  margin-bottom: 0;
+  padding: 16px;
 }
 
 .featured-heading {
@@ -241,25 +243,26 @@ main#main-content {
   letter-spacing: -0.02em;
 }
 
-.featured-sub {
-  margin: 0;
-  font-size: 0.88rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-}
-
-/* Carril: scroll horizontal en móvil; rejilla en pantallas amplias */
 .featured-track {
   display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  scroll-padding-inline: 16px;
-  padding: 4px 4px 14px;
-  margin-inline: -4px;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-x: contain;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  width: 100%;
+  min-height: 220px;
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.featured-track:not(.is-empty) {
+  animation: fadeIn 0.4s ease;
 }
 
 .featured-track.is-empty {
@@ -276,62 +279,74 @@ main#main-content {
 }
 
 .featured-card {
-  flex: 0 0 min(78vw, 260px);
-  scroll-snap-align: start;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  scroll-snap-align: none;
   max-width: 100%;
+  position: relative;
+}
+
+.featured-card--hero {
+  display: flex;
+  align-items: stretch;
 }
 
 @media (min-width: 640px) {
   .featured-card {
-    flex: 0 0 calc(50% - 6px);
+    flex: unset;
   }
 }
 
 @media (min-width: 900px) {
   .featured-track {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    overflow-x: visible;
-    scroll-snap-type: none;
-    gap: 14px;
-    padding-bottom: 8px;
+    min-height: 280px;
   }
 
-  .featured-card {
-    flex: unset;
-    min-width: 0;
+  .featured-card--hero {
+    flex-direction: row;
   }
 }
 
 .featured-card-btn {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: none;
+  border-radius: 0;
   background: var(--surface);
   color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
   overflow: hidden;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
-  transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
-  min-height: 44px;
+  box-shadow: none;
+  transition: none;
+  min-height: 220px;
+}
+
+.featured-card--hero .featured-card-btn {
+  flex-direction: column;
+}
+
+@media (min-width: 900px) {
+  .featured-card--hero .featured-card-btn {
+    flex-direction: row;
+  }
 }
 
 .featured-card-btn:hover {
-  border-color: #444;
-  transform: translateY(-3px);
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+  border-color: inherit;
+  transform: none;
+  box-shadow: none;
 }
 
 .featured-card-btn:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 3px;
+  outline-offset: -4px;
 }
 
 .featured-img-wrap {
@@ -339,6 +354,19 @@ main#main-content {
   aspect-ratio: 4 / 3;
   background: var(--bg);
   overflow: hidden;
+  flex: 1;
+}
+
+.featured-img-wrap--hero {
+  aspect-ratio: 16 / 9;
+  min-width: 100%;
+}
+
+@media (min-width: 900px) {
+  .featured-img-wrap--hero {
+    aspect-ratio: 16 / 9;
+    flex: 1.2;
+  }
 }
 
 .featured-img-wrap img {
@@ -346,11 +374,11 @@ main#main-content {
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.45s ease;
+  transition: none;
 }
 
 .featured-card-btn:hover .featured-img-wrap img {
-  transform: scale(1.05);
+  transform: none;
 }
 
 .featured-card-body {
@@ -359,6 +387,21 @@ main#main-content {
   flex-direction: column;
   gap: 6px;
   flex: 1;
+}
+
+.featured-card-body--hero {
+  padding: 16px 20px;
+  gap: 8px;
+  justify-content: center;
+  background: var(--surface);
+  flex: 0.8;
+}
+
+@media (min-width: 900px) {
+  .featured-card-body--hero {
+    padding: 24px 28px;
+    gap: 12px;
+  }
 }
 
 .featured-card-title {
@@ -372,11 +415,20 @@ main#main-content {
   overflow: hidden;
 }
 
+.featured-card-title--hero {
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  -webkit-line-clamp: 2;
+}
+
 .featured-card-price {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 700;
   color: #fecaca;
+}
+
+.featured-card-price--hero {
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
 }
 
 .featured-card-cta {
@@ -385,6 +437,49 @@ main#main-content {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--accent);
+}
+
+.featured-card-cta--hero {
+  margin-top: 12px;
+  padding-top: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  border-top: 1px solid var(--border);
+}
+
+/* Indicadores de puntos */
+.featured-dots {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.featured-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.3);
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0;
+  color: transparent;
+}
+
+.featured-dot.active {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(255, 255, 255, 1);
+  transform: scale(1.3);
+}
+
+.featured-dot:hover {
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .badge {
@@ -1552,4 +1647,44 @@ body.modal-open {
   .product:hover {
     transform: none;
   }
+}
+
+/* Estilos de moneda */
+.currency-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.9em;
+  margin-right: 4px;
+}
+
+.currency-usd {
+  background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+  color: #fff;
+}
+
+.currency-cup {
+  background: linear-gradient(135deg, #ff6b9d 0%, #c2185b 100%);
+  color: #fff;
+}
+
+.currency-label {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+}
+
+.currency-label.currency-usd {
+  background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+  color: #fff;
+}
+
+.currency-label.currency-cup {
+  background: linear-gradient(135deg, #ff6b9d 0%, #c2185b 100%);
+  color: #fff;
 }

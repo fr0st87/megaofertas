@@ -100,16 +100,13 @@
     return list;
   }
 
-  const SHOWCASE_COUNT = 5;
-
   function getFeaturedShowcaseProducts() {
     const all = catalog.products.slice();
-    const featured = all.filter((p) => p.featured);
-    const rest = all.filter((p) => !p.featured);
-    const merged = [...featured, ...rest];
-    const n = Math.min(SHOWCASE_COUNT, merged.length);
-    return merged.slice(0, n);
+    return all.filter((p) => p.featured);
   }
+
+  let currentFeaturedIndex = 0;
+  let featuredInterval = null;
 
   function showToast(message) {
     if (!toastRegion) return;
@@ -181,41 +178,71 @@
 
   function renderFeatured() {
     if (!featuredEl) return;
-    const list = catalog.products;
-    if (!list.length) {
+    const items = getFeaturedShowcaseProducts();
+    const featuredSection = featuredEl.closest('.featured');
+
+    if (!items.length) {
       featuredEl.classList.add('is-empty');
       featuredEl.innerHTML =
-        '<p class="featured-empty-msg">No hay productos. Añade algunos desde el panel de administración.</p>';
+        '<p class="featured-empty-msg">No hay productos destacados. Marca algunos desde el panel de administración.</p>';
+      if (featuredSection) featuredSection.style.display = 'none';
+      if (featuredInterval) clearInterval(featuredInterval);
       return;
     }
+
+    if (featuredSection) featuredSection.style.display = 'block';
     featuredEl.classList.remove('is-empty');
-    const items = getFeaturedShowcaseProducts();
-    featuredEl.innerHTML = items
-      .map((p) => {
-        const imgFeatured = resolveAssetUrl(p.img);
-        return `
-      <article class="featured-card">
+    currentFeaturedIndex = 0;
+
+    function renderCurrentSlide() {
+      const p = items[currentFeaturedIndex];
+      const imgFeatured = resolveAssetUrl(p.img);
+      const currencyLabel = p.currency === 'CUP' ? 'CUP' : 'USD';
+      const currencyClass = 'currency-' + (p.currency || 'USD').toLowerCase();
+      featuredEl.innerHTML = `
+      <article class="featured-card featured-card--hero">
         <button type="button" class="featured-card-btn" data-featured-open="${escapeAttr(p.id)}">
-          <div class="featured-img-wrap">
-            <img src="${escapeAttr(imgFeatured)}" alt="${escapeAttr(p.name)}" loading="lazy" width="480" height="320" decoding="async">
+          <div class="featured-img-wrap featured-img-wrap--hero">
+            <img src="${escapeAttr(imgFeatured)}" alt="${escapeAttr(p.name)}" loading="lazy" width="1200" height="400" decoding="async">
           </div>
-          <div class="featured-card-body">
+          <div class="featured-card-body featured-card-body--hero">
             <span class="badge badge--sm">OFERTA</span>
-            <h3 class="featured-card-title">${escapeHtml(p.name)}</h3>
-            <p class="featured-card-price">$${escapeHtml(String(p.price))}</p>
-            <span class="featured-card-cta">Ver detalle</span>
+            <h3 class="featured-card-title featured-card-title--hero">${escapeHtml(p.name)}</h3>
+            <p class="featured-card-price featured-card-price--hero">$ ${escapeHtml(String(p.price))} <span class="currency-label ${currencyClass}">${currencyLabel}</span></p>
+            <span class="featured-card-cta featured-card-cta--hero">Ver detalle</span>
           </div>
         </button>
-      </article>`;
-      })
-      .join('');
+      </article>
+      <div class="featured-dots">
+        ${items.map((_, idx) => `<button type="button" class="featured-dot ${idx === currentFeaturedIndex ? 'active' : ''}" data-slide="${idx}" aria-label="Ir a producto ${idx + 1}" aria-pressed="${idx === currentFeaturedIndex}"></button>`).join('')}
+      </div>`;
 
-    featuredEl.querySelectorAll('[data-featured-open]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-featured-open');
+      featuredEl.querySelector('[data-featured-open]').addEventListener('click', () => {
+        const id = featuredEl.querySelector('[data-featured-open]').getAttribute('data-featured-open');
         if (id) openProductModal(id);
       });
-    });
+
+      featuredEl.querySelectorAll('[data-slide]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          clearInterval(featuredInterval);
+          currentFeaturedIndex = parseInt(btn.getAttribute('data-slide'), 10);
+          renderCurrentSlide();
+          startFeaturedRotation();
+        });
+      });
+    }
+
+    function startFeaturedRotation() {
+      if (items.length <= 1) return;
+      if (featuredInterval) clearInterval(featuredInterval);
+      featuredInterval = setInterval(() => {
+        currentFeaturedIndex = (currentFeaturedIndex + 1) % items.length;
+        renderCurrentSlide();
+      }, 15000);
+    }
+
+    renderCurrentSlide();
+    startFeaturedRotation();
   }
 
   function renderProducts() {
@@ -236,6 +263,8 @@
       div.className = 'product';
       const imgSrc = resolveAssetUrl(p.img);
       const inWish = isInWishlist(p.id);
+      const currencyLabel = p.currency === 'CUP' ? 'CUP' : 'USD';
+      const currencyClass = 'currency-' + (p.currency || 'USD').toLowerCase();
       div.innerHTML = `
         <button type="button" class="product-wishlist ${inWish ? 'is-active' : ''}" data-wishlist="${escapeAttr(
           p.id
@@ -245,7 +274,7 @@
         </div>
         <h3 class="product-title">${escapeHtml(p.name)}</h3>
         <p class="product-meta">${escapeHtml(getCategoryName(p.categoryId))}</p>
-        <p class="product-price">$${escapeHtml(String(p.price))}</p>
+        <p class="product-price">$ ${escapeHtml(String(p.price))} <span class="currency-label ${currencyClass}">${currencyLabel}</span></p>
         <div class="product-actions">
           <button type="button" class="btn-secondary btn-product-secondary" data-detail="${escapeAttr(
             p.id
@@ -278,6 +307,8 @@
     const imgSrc = resolveAssetUrl(p.img);
     const stockNote =
       p.stock == null ? 'Disponible' : p.stock > 0 ? `${p.stock} en stock` : 'Sin stock';
+    const currencyLabel = p.currency === 'CUP' ? 'CUP' : 'USD';
+    const currencyClass = 'currency-' + (p.currency || 'USD').toLowerCase();
     productModalBody.innerHTML = `
       <div class="product-modal-grid">
         <div class="product-modal-img">
@@ -288,7 +319,7 @@
           <p class="product-modal-meta">${escapeHtml(getCategoryName(p.categoryId))} · ${escapeHtml(
             stockNote
           )}</p>
-          <p class="product-modal-price">$${escapeHtml(String(p.price))}</p>
+          <p class="product-modal-price">$ ${escapeHtml(String(p.price))} <span class="currency-label ${currencyClass}">${currencyLabel}</span></p>
           <p class="product-modal-desc">${escapeHtml(p.description || 'Sin descripción.')}</p>
           <div class="product-modal-actions">
             <button type="button" class="btn-primary" id="modal-add-cart">Añadir al carrito</button>

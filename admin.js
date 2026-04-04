@@ -13,8 +13,10 @@ function startAdminPanel() {
   const prodList = document.getElementById('prod-list');
   const prodForm = document.getElementById('prod-form');
   const prodIdInput = document.getElementById('prod-id');
+  const prodCodeInput = document.getElementById('prod-code');
   const prodNameInput = document.getElementById('prod-name');
   const prodPriceInput = document.getElementById('prod-price');
+  const prodCurrencySelect = document.getElementById('prod-currency');
   const prodCategorySelect = document.getElementById('prod-category');
   const prodImageUrlInput = document.getElementById('prod-image-url');
   const prodImageInput = document.getElementById('prod-image');
@@ -25,6 +27,7 @@ function startAdminPanel() {
   const prodDescriptionInput = document.getElementById('prod-description');
   const prodFeaturedInput = document.getElementById('prod-featured');
   const prodStockInput = document.getElementById('prod-stock');
+  const codeValidationMsg = document.getElementById('code-validation-msg');
 
   let pendingImageData = null;
 
@@ -142,7 +145,7 @@ function startAdminPanel() {
         <img src="${thumbSrc}" alt="" class="admin-thumb" loading="lazy">
         <div>
           <strong>${escapeHtml(p.name)}${feat}</strong>
-          <div class="muted">$${p.price} · ${escapeHtml(catName)}</div>
+          <div class="muted">${p.code} · ${p.currency} $${p.price} · ${escapeHtml(catName)}</div>
         </div>
       </div>
       <div class="admin-actions">
@@ -164,8 +167,10 @@ function startAdminPanel() {
     const p = catalog.products.find((x) => x.id === id);
     if (!p) return;
     prodIdInput.value = p.id;
+    prodCodeInput.value = p.code || '';
     prodNameInput.value = p.name;
     prodPriceInput.value = p.price;
+    prodCurrencySelect.value = p.currency || 'USD';
     prodCategorySelect.value = p.categoryId || '';
     if (prodDescriptionInput) prodDescriptionInput.value = p.description || '';
     if (prodFeaturedInput) prodFeaturedInput.checked = !!p.featured;
@@ -188,8 +193,10 @@ function startAdminPanel() {
 
   function resetProductForm() {
     prodIdInput.value = '';
+    prodCodeInput.value = '';
     prodNameInput.value = '';
     prodPriceInput.value = '';
+    prodCurrencySelect.value = 'USD';
     prodCategorySelect.value = '';
     prodImageUrlInput.value = '';
     prodImageInput.value = '';
@@ -199,6 +206,7 @@ function startAdminPanel() {
     if (prodDescriptionInput) prodDescriptionInput.value = '';
     if (prodFeaturedInput) prodFeaturedInput.checked = false;
     if (prodStockInput) prodStockInput.value = '';
+    codeValidationMsg.style.display = 'none';
     prodSubmitBtn.textContent = 'Añadir producto';
     prodCancelBtn.classList.add('hidden');
   }
@@ -223,6 +231,8 @@ function startAdminPanel() {
       pendingImageData = reader.result;
       prodImagePreview.src = pendingImageData;
       prodImagePreview.classList.remove('hidden');
+      // Guardar nombre del archivo original para renombrarlo luego
+      prodImageInput.dataset.originalName = file.name;
     };
     reader.readAsDataURL(file);
   });
@@ -234,10 +244,49 @@ function startAdminPanel() {
     prodImagePreview.classList.add('hidden');
   });
 
+  // Validación en tiempo real del código de producto
+  prodCodeInput.addEventListener('input', () => {
+    const code = prodCodeInput.value.trim().toUpperCase();
+    const currentProdId = prodIdInput.value;
+    const codeRegex = /^[A-Z]{2}-[A-Z]{3}-\d{3}$/;
+
+    if (!code) {
+      codeValidationMsg.style.display = 'none';
+      return;
+    }
+
+    if (!codeRegex.test(code)) {
+      codeValidationMsg.textContent = '❌ Formato inválido. Usa XX-XXX-NNN (ej: CP-REF-001)';
+      codeValidationMsg.style.color = '#ff6b6b';
+      codeValidationMsg.style.display = 'block';
+      prodCodeInput.style.borderColor = '#ff6b6b';
+      return;
+    }
+
+    // Verificar si el código ya existe en otro producto
+    const codeExists = catalog.products.some(
+      (p) => p.code === code && p.id !== currentProdId
+    );
+
+    if (codeExists) {
+      codeValidationMsg.textContent = '❌ Este código ya existe en otro producto';
+      codeValidationMsg.style.color = '#ff6b6b';
+      codeValidationMsg.style.display = 'block';
+      prodCodeInput.style.borderColor = '#ff6b6b';
+    } else {
+      codeValidationMsg.textContent = '✓ Código disponible';
+      codeValidationMsg.style.color = '#51cf66';
+      codeValidationMsg.style.display = 'block';
+      prodCodeInput.style.borderColor = '#51cf66';
+    }
+  });
+
   prodForm.addEventListener('submit', (e) => {
     e.preventDefault();
+    const code = prodCodeInput.value.trim().toUpperCase();
     const name = prodNameInput.value.trim();
     const price = parseFloat(prodPriceInput.value);
+    const currency = prodCurrencySelect.value;
     const categoryId = prodCategorySelect.value || null;
     const urlVal = prodImageUrlInput.value.trim();
     const description = prodDescriptionInput ? prodDescriptionInput.value.trim() : '';
@@ -245,6 +294,12 @@ function startAdminPanel() {
     const stockRaw = prodStockInput ? prodStockInput.value.trim() : '';
     const stock =
       stockRaw === '' ? null : Math.max(0, Math.floor(Number(stockRaw)));
+    
+    // Validaciones
+    if (!code || !/^[A-Z]{2}-[A-Z]{3}-\d{3}$/.test(code)) {
+      alert('Código inválido. Usa formato XX-XXX-NNN (ej: CP-REF-001)');
+      return;
+    }
     if (!name || Number.isNaN(price) || price < 0) {
       alert('Nombre y precio válido son obligatorios.');
       return;
@@ -253,14 +308,26 @@ function startAdminPanel() {
       alert('Stock debe ser un número entero o dejarse vacío.');
       return;
     }
+    
+    // Verificar código único
     const editId = prodIdInput.value;
+    const codeExists = catalog.products.some(
+      (p) => p.code === code && p.id !== editId
+    );
+    if (codeExists) {
+      alert('El código ' + code + ' ya existe en otro producto.');
+      return;
+    }
+    
     const fallbackImg = 'https://placehold.co/400x300/141414/dc2626?text=Producto';
 
     if (editId) {
       const p = catalog.products.find((x) => x.id === editId);
       if (p) {
+        p.code = code;
         p.name = name;
         p.price = price;
+        p.currency = currency;
         p.categoryId = categoryId;
         p.description = description;
         p.stock = stock;
@@ -275,7 +342,9 @@ function startAdminPanel() {
           if (pendingImageData === '') {
             p.img = urlVal || fallbackImg;
           } else if (pendingImageData) {
+            // Si es datos en base64, usarlos; luego se pueden exportar con el nombre del código
             p.img = pendingImageData;
+            p.imgFileName = code; // Guardar el código como nombre para la imagen
           }
         } else if (urlVal) {
           p.img = urlVal;
@@ -298,10 +367,13 @@ function startAdminPanel() {
       }
       catalog.products.push({
         id: newId,
+        code,
         name,
         price,
+        currency,
         categoryId,
         img,
+        imgFileName: pendingImageData ? code : null,
         description,
         featured: !!featured,
         stock

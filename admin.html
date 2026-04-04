@@ -62,12 +62,24 @@
       <form id="prod-form" class="admin-form admin-form-grid">
         <input type="hidden" id="prod-id" value="">
         <label>
+          Código del producto (CP-REF-001)
+          <input type="text" id="prod-code" required placeholder="CP-REF-001" maxlength="12" pattern="[A-Z]{2}-[A-Z]{3}-\d{3}" title="Formato: XX-XXX-NNN (ej: CP-REF-001)">
+        </label>
+        <label class="code-validation" id="code-validation-msg" style="display: none;"></label>
+        <label>
           Nombre
           <input type="text" id="prod-name" required placeholder="Ej. Auriculares Bluetooth" maxlength="120">
         </label>
         <label>
           Precio
           <input type="number" id="prod-price" required min="0" step="0.01" placeholder="0">
+        </label>
+        <label>
+          Moneda
+          <select id="prod-currency" required>
+            <option value="USD">USD ($)</option>
+            <option value="CUP">CUP (₱)</option>
+          </select>
         </label>
         <label>
           Categoría

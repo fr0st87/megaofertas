@@ -57,53 +57,68 @@ function getDefaultCatalog() {
     products: [
       {
         id: uid(),
+        code: 'CP-REF-001',
         name: "Smart TV 50''",
         price: 499,
+        currency: 'USD',
         categoryId: catTv,
         img: phImg('TV 50" 4K'),
         description: 'Panel 4K UHD, HDR y smart TV integrado. Ideal para salón.',
         featured: true,
-        stock: null
+        stock: null,
+        imgFileName: 'CP-REF-001'
       },
       {
         id: uid(),
-        name: 'Lavadora 9 kg',
-        price: 329,
-        categoryId: catLav,
-        img: phImg('Lavadora'),
-        description: 'Carga frontal, ahorro energético y múltiples programas.',
-        featured: false,
-        stock: 12
-      },
-      {
-        id: uid(),
+        code: 'CP-NEV-001',
         name: 'Refrigerador no frost',
         price: 789,
+        currency: 'USD',
         categoryId: catRef,
         img: phImg('Nevera'),
         description: 'No frost, dispensador y gran capacidad familiar.',
         featured: false,
-        stock: null
+        stock: null,
+        imgFileName: 'CP-NEV-001'
       },
       {
         id: uid(),
+        code: 'CP-LAV-001',
+        name: 'Lavadora 9 kg',
+        price: 329,
+        currency: 'USD',
+        categoryId: catLav,
+        img: phImg('Lavadora'),
+        description: 'Carga frontal, ahorro energético y múltiples programas.',
+        featured: false,
+        stock: 12,
+        imgFileName: 'CP-LAV-001'
+      },
+      {
+        id: uid(),
+        code: 'CP-MIC-001',
         name: 'Microondas digital',
         price: 89,
+        currency: 'USD',
         categoryId: catCoc,
         img: phImg('Microondas'),
         description: '25 L, grill, programas automáticos y panel táctil.',
         featured: false,
-        stock: 20
+        stock: 20,
+        imgFileName: 'CP-MIC-001'
       },
       {
         id: uid(),
+        code: 'CP-CLI-001',
         name: 'Aire split 3500 frigorías',
         price: 459,
+        currency: 'USD',
         categoryId: catCli,
         img: phImg('Aire A/C'),
         description: 'Frío/calor, eficiencia A, kit de instalación básico.',
         featured: false,
-        stock: 8
+        stock: 8,
+        imgFileName: 'CP-CLI-001'
       }
     ]
   };
@@ -118,6 +133,18 @@ function migrateCatalog(data) {
     }
     if (typeof p.featured !== 'boolean') {
       p.featured = false;
+      changed = true;
+    }
+    if (typeof p.currency !== 'string' || !['USD', 'CUP'].includes(p.currency)) {
+      p.currency = 'USD';
+      changed = true;
+    }
+    if (typeof p.code !== 'string') {
+      p.code = '';
+      changed = true;
+    }
+    if (typeof p.imgFileName !== 'string') {
+      p.imgFileName = null;
       changed = true;
     }
     if (p.stock !== null && p.stock !== undefined && typeof p.stock !== 'number') {
@@ -135,7 +162,7 @@ function migrateCatalog(data) {
 
 function loadCatalog() {
   try {
-    const raw = localStorage.getItem(STORE_KEY);
+    const raw = sessionStorage.getItem(STORE_KEY);
     if (raw) {
       const data = JSON.parse(raw);
       if (data.categories && data.products) return migrateCatalog(data);
@@ -149,7 +176,7 @@ function loadCatalog() {
 }
 
 function saveCatalog(data) {
-  localStorage.setItem(STORE_KEY, JSON.stringify(data));
+  sessionStorage.setItem(STORE_KEY, JSON.stringify(data));
 }
 
 /** Líneas del carrito: { productId, qty } */
