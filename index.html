@@ -17,17 +17,14 @@
 
 <header class="header header--sticky">
   <div class="header-inner">
-    <a href="index.html" class="logo"><span class="logo-mark" aria-hidden="true">🏷️</span> MegaOfertas</a>
+    <a href="index.html" class="logo"><span class="logo-mark" aria-hidden="true">🏷️</span> <span class="logo-text">MegaOfertas</span></a>
     <div class="header-search" role="search">
       <label class="visually-hidden" for="store-search">Buscar productos</label>
       <input type="search" id="store-search" class="input-search" placeholder="Buscar por nombre o descripción…" autocomplete="off">
     </div>
     <div class="icons">
       <a href="admin.html" class="icon-link icon-link--text" title="Administración">Admin</a>
-      <button type="button" class="icon-wishlist" id="open-wishlist" aria-label="Lista de deseos">
-        <span aria-hidden="true">♥</span>
-        <span id="wishlist-count" class="icon-badge" aria-live="polite">0</span>
-      </button>
+      <a href="quienes-somos.html" class="icon-link icon-link--text" title="Quiénes somos">Quienes Somos</a>
     </div>
   </div>
 </header>
@@ -42,8 +39,13 @@
 
   <section class="toolbar" aria-label="Filtros y orden">
     <div class="filters-wrap">
-      <h2 class="toolbar-title">Categorías</h2>
-      <div class="filters" id="filters"></div>
+      <button type="button" class="filters-toggle" id="filters-toggle" aria-label="Mostrar/ocultar categorías" aria-expanded="false">
+        <span aria-hidden="true">⊞</span> Categorías
+      </button>
+      <div class="filters-container" id="filters-container">
+        <h2 class="toolbar-title">Categorías</h2>
+        <div class="filters" id="filters"></div>
+      </div>
     </div>
     <div class="sort-wrap">
       <label for="sort-select" class="sort-label">Ordenar</label>
@@ -67,6 +69,7 @@
     </div>
     <ul class="footer-links">
       <li><a href="#main-content">Inicio</a></li>
+      <li><a href="quienes-somos.html">Quiénes somos</a></li>
       <li><a href="admin.html">Panel admin</a></li>
     </ul>
   </div>

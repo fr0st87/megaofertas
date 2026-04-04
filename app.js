@@ -11,8 +11,9 @@
   const cartEmptyEl = document.getElementById('cart-empty');
   const totalEl = document.getElementById('total');
   const countEl = document.getElementById('cart-count');
-  const wishlistCountEl = document.getElementById('wishlist-count');
   const filtersEl = document.getElementById('filters');
+  const filtersToggle = document.getElementById('filters-toggle');
+  const filtersContainer = document.getElementById('filters-container');
   const featuredEl = document.getElementById('featured-card');
   const searchInput = document.getElementById('store-search');
   const sortSelect = document.getElementById('sort-select');
@@ -23,14 +24,11 @@
   const productModalBody = document.getElementById('product-modal-body');
   const cartModal = document.getElementById('cart-modal');
   const checkoutModal = document.getElementById('checkout-modal');
-  const wishlistModal = document.getElementById('wishlist-modal');
-  const wishlistItemsEl = document.getElementById('wishlist-items');
-  const wishlistEmptyEl = document.getElementById('wishlist-empty');
-  const btnCheckout = document.getElementById('btn-checkout');
   const checkoutForm = document.getElementById('checkout-form');
   const checkoutSummary = document.getElementById('checkout-summary');
   const checkoutSuccess = document.getElementById('checkout-success');
   const checkoutDone = document.getElementById('checkout-done');
+  const btnCheckout = document.getElementById('btn-checkout');
 
   let lastFocusEl = null;
 
@@ -155,6 +153,23 @@
     });
   });
 
+  // Toggle categorías en móvil
+  if (filtersToggle && filtersContainer) {
+    filtersToggle.addEventListener('click', () => {
+      const isExpanded = filtersToggle.getAttribute('aria-expanded') === 'true';
+      filtersToggle.setAttribute('aria-expanded', !isExpanded);
+      filtersContainer.classList.toggle('show');
+    });
+    
+    // Cerrar categorías cuando se selecciona una
+    document.addEventListener('click', (e) => {
+      if (e.target.matches('[data-cat]') && window.innerWidth <= 720) {
+        filtersToggle.setAttribute('aria-expanded', 'false');
+        filtersContainer.classList.remove('show');
+      }
+    });
+  }
+
   function renderFilters() {
     if (!filtersEl) return;
     filtersEl.innerHTML =
@@ -266,9 +281,6 @@
       const currencyLabel = p.currency === 'CUP' ? 'CUP' : 'USD';
       const currencyClass = 'currency-' + (p.currency || 'USD').toLowerCase();
       div.innerHTML = `
-        <button type="button" class="product-wishlist ${inWish ? 'is-active' : ''}" data-wishlist="${escapeAttr(
-          p.id
-        )}" aria-label="Favoritos" aria-pressed="${inWish}">♥</button>
         <div class="product-img-wrap">
           <img src="${escapeAttr(imgSrc)}" alt="${escapeAttr(p.name)}" loading="lazy">
         </div>
@@ -282,15 +294,6 @@
           <button type="button" class="btn-primary btn-product-add" data-add="${escapeAttr(p.id)}">Añadir</button>
         </div>
       `;
-      div.querySelector('[data-wishlist]').addEventListener('click', (e) => {
-        e.stopPropagation();
-        const on = toggleWishlistId(p.id);
-        const b = div.querySelector('[data-wishlist]');
-        b.classList.toggle('is-active', on);
-        b.setAttribute('aria-pressed', String(on));
-        updateWishlistCount();
-        showToast(on ? 'Añadido a favoritos' : 'Quitado de favoritos');
-      });
       div.querySelector('[data-detail]').addEventListener('click', () => openProductModal(p.id));
       div.querySelector('[data-add]').addEventListener('click', () => addToCart(p.id, 1));
       container.appendChild(div);
@@ -429,49 +432,6 @@
     if (btnCheckout) btnCheckout.disabled = count === 0;
   }
 
-  function updateWishlistCount() {
-    const n = loadWishlistIds().length;
-    if (wishlistCountEl) wishlistCountEl.textContent = n > 99 ? '99+' : String(n);
-  }
-
-  function renderWishlistModal() {
-    catalog = loadCatalog();
-    const ids = loadWishlistIds();
-    if (!wishlistItemsEl) return;
-    wishlistItemsEl.innerHTML = '';
-    if (!ids.length) {
-      wishlistEmptyEl?.classList.remove('hidden');
-      return;
-    }
-    wishlistEmptyEl?.classList.add('hidden');
-    ids.forEach((id) => {
-      const p = getProductById(id);
-      if (!p) return;
-      const row = document.createElement('div');
-      row.className = 'wishlist-row';
-      const imgSrc = resolveAssetUrl(p.img);
-      row.innerHTML = `
-        <img src="${escapeAttr(imgSrc)}" alt="" class="wishlist-thumb" loading="lazy">
-        <div class="wishlist-row-text">
-          <strong>${escapeHtml(p.name)}</strong>
-          <span class="muted">$${p.price}</span>
-        </div>
-        <div class="wishlist-row-actions">
-          <button type="button" class="btn-secondary btn-small" data-wl-add="${escapeAttr(p.id)}">Al carrito</button>
-          <button type="button" class="btn-danger btn-small" data-wl-remove="${escapeAttr(p.id)}">Quitar</button>
-        </div>
-      `;
-      row.querySelector('[data-wl-add]').addEventListener('click', () => addToCart(p.id, 1));
-      row.querySelector('[data-wl-remove]').addEventListener('click', () => {
-        toggleWishlistId(p.id);
-        renderWishlistModal();
-        updateWishlistCount();
-        renderProducts();
-      });
-      wishlistItemsEl.appendChild(row);
-    });
-  }
-
   function fillCheckoutSummary() {
     if (!checkoutSummary) return;
     catalog = loadCatalog();
@@ -494,14 +454,6 @@
     openCartBtn.addEventListener('click', () => {
       updateCartUI();
       openModal(cartModal);
-    });
-  }
-
-  const openWishlistBtn = document.getElementById('open-wishlist');
-  if (openWishlistBtn) {
-    openWishlistBtn.addEventListener('click', () => {
-      renderWishlistModal();
-      openModal(wishlistModal);
     });
   }
 
