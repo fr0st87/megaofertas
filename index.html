@@ -43,8 +43,10 @@
         <span aria-hidden="true">⊞</span> Categorías
       </button>
       <div class="filters-container" id="filters-container">
-        <h2 class="toolbar-title">Categorías</h2>
-        <div class="filters" id="filters"></div>
+        <div>
+          <h2 class="toolbar-title">Categorías</h2>
+          <div class="filters" id="filters"></div>
+        </div>
       </div>
     </div>
     <div class="sort-wrap">
@@ -104,6 +106,16 @@
   </div>
 </div>
 
+<!-- Modal categorías móvil -->
+<div class="modal" id="categories-modal" role="dialog" aria-modal="true" aria-labelledby="categories-modal-title" hidden>
+  <div class="modal-backdrop" data-close-modal></div>
+  <div class="modal-panel modal-panel--categories">
+    <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">×</button>
+    <h2 id="categories-modal-title" class="modal-title">Categorías</h2>
+    <div id="categories-modal-grid" class="categories-modal-grid"></div>
+  </div>
+</div>
+
 <!-- Modal checkout -->
 <div class="modal" id="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-modal-title" hidden>
   <div class="modal-backdrop" data-close-modal></div>
@@ -135,17 +147,6 @@
       <p>Gracias por tu compra. Este entorno es solo front-end; no se ha procesado ningún pago real.</p>
       <button type="button" class="btn-primary" id="checkout-done">Entendido</button>
     </div>
-  </div>
-</div>
-
-<!-- Modal wishlist -->
-<div class="modal" id="wishlist-modal" role="dialog" aria-modal="true" aria-labelledby="wishlist-modal-title" hidden>
-  <div class="modal-backdrop" data-close-modal></div>
-  <div class="modal-panel">
-    <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">×</button>
-    <h2 id="wishlist-modal-title" class="modal-title">Lista de deseos</h2>
-    <div id="wishlist-items"></div>
-    <p id="wishlist-empty" class="cart-empty hidden">No hay favoritos. Pulsa ♥ en un producto.</p>
   </div>
 </div>
 

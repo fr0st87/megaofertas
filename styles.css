@@ -602,6 +602,32 @@ main#main-content {
   color: #fff;
 }
 
+.category-modal-pill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all var(--transition);
+  width: 100%;
+  text-align: center;
+}
+
+.category-modal-pill:hover {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
+
+.category-modal-pill.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
 .sort-wrap {
   display: flex;
   align-items: center;
@@ -867,10 +893,20 @@ body.modal-open {
   max-width: 720px;
 }
 
+.modal-panel--categories {
+  max-width: 380px;
+}
+
 .modal-title {
   margin: 0 0 16px;
   font-size: 1.35rem;
   font-weight: 700;
+}
+
+.categories-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 .modal-close {
