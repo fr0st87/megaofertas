@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Generar hash para contraseña de admin</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 520px; margin: 2rem auto; padding: 0 1rem; background: #111; color: #eee; }
+    label { display: block; margin-top: 1rem; }
+    input[type="password"], textarea { width: 100%; padding: 10px; margin-top: 6px; background: #1a1a1a; border: 1px solid #444; color: #fff; border-radius: 8px; box-sizing: border-box; }
+    textarea { min-height: 72px; font-family: monospace; font-size: 12px; }
+    button { margin-top: 12px; background: #c00; color: #fff; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    button:hover { background: #e00; }
+    .note { font-size: 0.9rem; color: #888; margin-top: 1.5rem; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <h1>Hash SHA-256 para admin</h1>
+  <p>Escribí la contraseña una sola vez. El valor de abajo es lo que pegás en <code>admin-auth.js</code>.</p>
+  <label>Contraseña <input type="password" id="pass" autocomplete="off"></label>
+  <button type="button" id="go">Generar</button>
+  <label>Resultado (hex) <textarea id="out" readonly></textarea></label>
+  <p class="note">
+    Abrí este archivo en tu PC (doble clic). No hace falta subirlo a GitHub si preferís no publicar la herramienta: podés borrar la carpeta <code>tools</code> del repo o añadirla al <code>.gitignore</code>.
+    Usá una contraseña larga y aleatoria; el hash en el repo sigue siendo recuperable por fuerza bruta si alguien copia el código.<br><br>
+    Este HTML no envía nada a internet: todo corre en tu navegador.
+  </p>
+  <script>
+    async function sha256Hex(text) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+    }
+    document.getElementById('go').onclick = async () => {
+      const p = document.getElementById('pass').value;
+      if (!p) {
+        alert('Escribí una contraseña.');
+        return;
+      }
+      document.getElementById('out').value = await sha256Hex(p);
+    };
+  </script>
+</body>
+</html>

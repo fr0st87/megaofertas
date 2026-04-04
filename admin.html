@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>MegaOfertas — Administración</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="admin-body">
+
+<div id="admin-gate" class="admin-gate">
+  <div class="admin-gate-box">
+    <p class="admin-gate-back"><a href="index.html" class="link-store">← Volver a la tienda</a></p>
+    <h2 class="admin-gate-title">Acceso administración</h2>
+    <p id="admin-login-msg" class="muted gate-msg"></p>
+    <form id="admin-login-form" class="admin-login-form">
+      <label class="gate-label">
+        Contraseña
+        <input type="password" id="admin-login-pass" name="password" autocomplete="current-password">
+      </label>
+      <button type="submit" class="btn-primary gate-btn">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<div id="admin-authed" class="hidden">
+  <header class="header">
+    <a href="index.html" class="logo">🏷️ MegaOfertas</a>
+    <nav class="admin-nav">
+      <a href="index.html" class="link-store">← Volver a la tienda</a>
+      <button type="button" class="btn-secondary btn-small" id="admin-logout">Cerrar sesión</button>
+    </nav>
+  </header>
+
+  <main class="admin-main">
+    <div id="admin-insecure-banner" class="admin-insecure-banner hidden">
+      Modo desarrollo: no configuraste <code>admin-auth.js</code>. En GitHub Pages es obligatorio poner el hash SHA-256 de tu contraseña.
+    </div>
+
+    <h1 class="admin-title">Panel de administración</h1>
+    <p class="admin-intro muted">Imágenes recomendadas: subilas al repo en <code>img/productos/</code> y usá la ruta relativa (ej. <code>img/productos/tv.jpg</code>). El catálogo sigue guardándose en el navegador de cada visitante (localStorage); para un catálogo único público habría que versionar datos en el repositorio o usar backend.</p>
+
+    <section class="admin-panel">
+      <h2>Categorías</h2>
+      <form id="cat-form" class="admin-form">
+        <input type="hidden" id="cat-editing-id" value="">
+        <label>
+          Nombre
+          <input type="text" id="cat-name" required placeholder="Ej. Audio" maxlength="80">
+        </label>
+        <button type="submit" class="btn-primary" id="cat-submit">Añadir categoría</button>
+      </form>
+      <ul id="cat-list" class="admin-list"></ul>
+    </section>
+
+    <section class="admin-panel">
+      <h2>Productos</h2>
+      <form id="prod-form" class="admin-form admin-form-grid">
+        <input type="hidden" id="prod-id" value="">
+        <label>
+          Nombre
+          <input type="text" id="prod-name" required placeholder="Ej. Auriculares Bluetooth" maxlength="120">
+        </label>
+        <label>
+          Precio
+          <input type="number" id="prod-price" required min="0" step="0.01" placeholder="0">
+        </label>
+        <label>
+          Categoría
+          <select id="prod-category"></select>
+        </label>
+        <label class="full-width">
+          Descripción (visible en la tienda)
+          <textarea id="prod-description" maxlength="2000" placeholder="Características breves del producto…"></textarea>
+        </label>
+        <label class="admin-checkbox full-width">
+          <input type="checkbox" id="prod-featured">
+          Destacar en la página de inicio (solo uno recomendado)
+        </label>
+        <label>
+          Stock (vacío = ilimitado)
+          <input type="number" id="prod-stock" min="0" step="1" placeholder="Ej. 10">
+        </label>
+        <label class="full-width">
+          Ruta o URL de imagen
+          <input type="text" id="prod-image-url" placeholder="img/productos/mi-foto.jpg">
+        </label>
+        <p class="muted full-width field-hint">En GitHub Pages: commiteá la foto en <code>img/productos/</code> y escribí la ruta. Las rutas absolutas tipo <code>/img/...</code> se combinan con <code>site-config.js</code> si usás sitio de proyecto.</p>
+        <label class="full-width">
+          O subir archivo (solo pruebas locales; ocupa espacio en localStorage)
+          <input type="file" id="prod-image" accept="image/*">
+        </label>
+        <div class="image-preview-wrap full-width">
+          <img id="prod-image-preview" class="admin-preview hidden" alt="Vista previa">
+          <button type="button" class="btn-secondary btn-small" id="prod-clear-image">Quitar imagen nueva</button>
+        </div>
+        <div class="form-actions full-width">
+          <button type="submit" class="btn-primary" id="prod-submit">Añadir producto</button>
+          <button type="button" class="btn-secondary hidden" id="prod-cancel">Cancelar edición</button>
+        </div>
+      </form>
+      <ul id="prod-list" class="admin-list"></ul>
+    </section>
+  </main>
+</div>
+
+<script src="site-config.js"></script>
+<script src="admin-auth.js"></script>
+<script src="store.js"></script>
+<script src="admin-login.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

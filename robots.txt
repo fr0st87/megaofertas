@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Panel de administración (no indexar; la seguridad real no depende de esto)
+Disallow: /admin.html

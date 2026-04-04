@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="MegaOfertas — electrodomésticos y tecnología al mejor precio. Tienda online con carrito y envío simulado.">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>MegaOfertas — Tienda online</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="store-body">
+
+<a href="#main-content" class="skip-link">Saltar al contenido</a>
+
+<header class="header header--sticky">
+  <div class="header-inner">
+    <a href="index.html" class="logo"><span class="logo-mark" aria-hidden="true">🏷️</span> MegaOfertas</a>
+    <div class="header-search" role="search">
+      <label class="visually-hidden" for="store-search">Buscar productos</label>
+      <input type="search" id="store-search" class="input-search" placeholder="Buscar por nombre o descripción…" autocomplete="off">
+    </div>
+    <div class="icons">
+      <a href="admin.html" class="icon-link icon-link--text" title="Administración">Admin</a>
+      <button type="button" class="icon-wishlist" id="open-wishlist" aria-label="Lista de deseos">
+        <span aria-hidden="true">♥</span>
+        <span id="wishlist-count" class="icon-badge" aria-live="polite">0</span>
+      </button>
+      <div class="cart-wrap">
+        <span id="cart-count" class="icon-badge" aria-live="polite">0</span>
+        <button type="button" class="icon-cart" id="open-cart" aria-label="Ver carrito">🛒</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="main-content">
+  <section class="featured" aria-label="Ofertas destacadas">
+    <div class="featured-head">
+      <h2 class="featured-heading">Equipos destacados</h2>
+      <p class="featured-sub">Cinco ofertas top — en móvil deslizá horizontalmente</p>
+    </div>
+    <div class="featured-track" id="featured-card"></div>
+  </section>
+
+  <section class="toolbar" aria-label="Filtros y orden">
+    <div class="filters-wrap">
+      <h2 class="toolbar-title">Categorías</h2>
+      <div class="filters" id="filters"></div>
+    </div>
+    <div class="sort-wrap">
+      <label for="sort-select" class="sort-label">Ordenar</label>
+      <select id="sort-select" class="select-sort">
+        <option value="default">Destacados primero</option>
+        <option value="price-asc">Precio: menor a mayor</option>
+        <option value="price-desc">Precio: mayor a menor</option>
+        <option value="name">Nombre A–Z</option>
+      </select>
+    </div>
+  </section>
+
+  <section class="products" id="products" aria-label="Catálogo de productos"></section>
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div>
+      <strong class="footer-brand">MegaOfertas</strong>
+      <p class="footer-copy">© <span id="footer-year"></span> MegaOfertas — demo HTML, CSS y JavaScript. Sin servidor.</p>
+    </div>
+    <ul class="footer-links">
+      <li><a href="#main-content">Inicio</a></li>
+      <li><a href="admin.html">Panel admin</a></li>
+    </ul>
+  </div>
+</footer>
+
+<div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Modal producto -->
+<div class="modal" id="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-modal-title" hidden>
+  <div class="modal-backdrop" data-close-modal></div>
+  <div class="modal-panel modal-panel--product">
+    <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">×</button>
+    <div id="product-modal-body" class="product-modal-body"></div>
+  </div>
+</div>
+
+<!-- Modal carrito -->
+<div class="modal" id="cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-modal-title" hidden>
+  <div class="modal-backdrop" data-close-modal></div>
+  <div class="modal-panel cart-content">
+    <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">×</button>
+    <h2 id="cart-modal-title" class="modal-title">Tu carrito</h2>
+    <div id="cart-items" class="cart-items"></div>
+    <p id="cart-empty" class="cart-empty hidden">Tu carrito está vacío.</p>
+    <div class="cart-footer">
+      <p id="total" class="cart-total">Total: <strong>$0</strong></p>
+      <div class="cart-actions">
+        <button type="button" class="btn-secondary" data-close-modal>Cerrar</button>
+        <button type="button" class="btn-primary" id="btn-checkout" disabled>Finalizar compra</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal checkout -->
+<div class="modal" id="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-modal-title" hidden>
+  <div class="modal-backdrop" data-close-modal></div>
+  <div class="modal-panel checkout-panel">
+    <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">×</button>
+    <h2 id="checkout-modal-title" class="modal-title">Finalizar pedido</h2>
+    <p class="checkout-note">Demostración: los datos no se envían a ningún servidor. En producción se conectaría a pasarela de pago o ERP.</p>
+    <form id="checkout-form" class="checkout-form">
+      <label>Nombre completo
+        <input type="text" name="name" required autocomplete="name" maxlength="120">
+      </label>
+      <label>Correo electrónico
+        <input type="email" name="email" required autocomplete="email" maxlength="120">
+      </label>
+      <label>Teléfono
+        <input type="tel" name="phone" required autocomplete="tel" maxlength="40">
+      </label>
+      <label class="full-width">Dirección de envío
+        <textarea name="address" required rows="3" maxlength="500" placeholder="Calle, número, ciudad, CP"></textarea>
+      </label>
+      <div class="checkout-summary" id="checkout-summary"></div>
+      <div class="form-actions full-width">
+        <button type="button" class="btn-secondary" data-close-modal>Volver</button>
+        <button type="submit" class="btn-primary">Confirmar pedido</button>
+      </div>
+    </form>
+    <div id="checkout-success" class="checkout-success hidden">
+      <p class="checkout-success-title">¡Pedido registrado!</p>
+      <p>Gracias por tu compra. Este entorno es solo front-end; no se ha procesado ningún pago real.</p>
+      <button type="button" class="btn-primary" id="checkout-done">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal wishlist -->
+<div class="modal" id="wishlist-modal" role="dialog" aria-modal="true" aria-labelledby="wishlist-modal-title" hidden>
+  <div class="modal-backdrop" data-close-modal></div>
+  <div class="modal-panel">
+    <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">×</button>
+    <h2 id="wishlist-modal-title" class="modal-title">Lista de deseos</h2>
+    <div id="wishlist-items"></div>
+    <p id="wishlist-empty" class="cart-empty hidden">No hay favoritos. Pulsa ♥ en un producto.</p>
+  </div>
+</div>
+
+<script src="site-config.js"></script>
+<script src="store.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
