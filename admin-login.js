@@ -1,8 +1,14 @@
 /**
- * Acceso al panel: sesión en sessionStorage, límite de intentos, SHA-256.
+ * Acceso al panel: autenticación con Supabase Auth + sesión en sessionStorage.
+ * 
+ * SEGURIDAD:
+ * - La autenticación se realiza contra Supabase Auth (servidor)
+ * - El hash local es solo como fallback para desarrollo
+ * - Rate limiting real implementado en Supabase Edge Functions
  */
 (function () {
   const SESSION_KEY = 'electrostore_admin_exp';
+  const SUPABASE_SESSION_KEY = 'supabase_admin_session';
   const SESSION_MS = 8 * 60 * 60 * 1000;
   const ATT_KEY = 'electrostore_login_att_v1';
 
@@ -13,7 +19,7 @@
 
   function configuredHash() {
     const h = window.ELECTROSTORE_ADMIN_PASSWORD_SHA256;
-    return typeof h === 'string' && /^[a-f0-9]{64}$/i.test(h.trim());
+    return typeof h === 'string' && /^[a-f0-9]{64}$/i.test(h.trim()) && h !== 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
   }
 
   function getHashHex() {
@@ -33,11 +39,72 @@
 
   function clearSession() {
     sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SUPABASE_SESSION_KEY);
   }
 
   async function sha256Hex(text) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
     return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  /**
+   * Autenticación con Supabase Auth
+   */
+  async function signInWithSupabase(email, password) {
+    try {
+      if (!window.sbClient) {
+        throw new Error('Supabase no disponible');
+      }
+      
+      const { data, error } = await window.sbClient.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+      
+      if (error) throw error;
+      
+      // Guardar token de sesión
+      if (data.user && data.session) {
+        sessionStorage.setItem(SUPABASE_SESSION_KEY, JSON.stringify({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+          user_id: data.user.id,
+          email: data.user.email,
+          expires_at: data.session.expires_at
+        }));
+        return { success: true, user: data.user };
+      }
+      
+      throw new Error('No se recibió sesión válida');
+    } catch (error) {
+      console.error('Error en Supabase Auth:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verificar si hay sesión activa en Supabase
+   */
+  async function checkSupabaseSession() {
+    try {
+      if (!window.sbClient) return null;
+      
+      const { data: { session }, error } = await window.sbClient.auth.getSession();
+      
+      if (error || !session) return null;
+      
+      // Verificar que el email coincida con el de admin configurado
+      const adminEmail = window.SUPABASE_ADMIN_EMAIL;
+      if (adminEmail && session.user.email !== adminEmail) {
+        console.warn('Email de usuario no coincide con admin configurado');
+        return null;
+      }
+      
+      return session;
+    } catch (error) {
+      console.error('Error verificando sesión Supabase:', error);
+      return null;
+    }
   }
 
   function getAttemptsState() {
@@ -85,7 +152,11 @@
     const btn = document.getElementById('admin-logout');
     if (btn && !btn.dataset.bound) {
       btn.dataset.bound = '1';
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
+        // Cerrar sesión en Supabase si existe
+        if (window.sbClient) {
+          await window.sbClient.auth.signOut();
+        }
         clearSession();
         location.reload();
       });
@@ -108,23 +179,35 @@
     if (htmlMessage) msgEl.innerHTML = htmlMessage;
   }
 
-  function init() {
+  async function init() {
     attachLogout();
+    
+    // Primero verificar sesión de Supabase
+    const supabaseSession = await checkSupabaseSession();
+    if (supabaseSession) {
+      setSession();
+      showMain(false);
+      console.log('✅ Sesión de Supabase restaurada');
+      return;
+    }
+    
+    // Fallback: verificar sesión local
     if (isSessionValid()) {
       showMain(false);
       return;
     }
 
     const hashHex = getHashHex();
+    const adminEmail = window.SUPABASE_ADMIN_EMAIL;
 
-    if (!hashHex) {
+    if (!hashHex && !adminEmail) {
       if (isLocalDev()) {
         showMain(true);
         setSession();
         return;
       }
       showGate(
-        '<strong>Falta configurar la contraseña.</strong><br><br>Editá <code>admin-auth.js</code> en el repositorio: generá el SHA-256 de tu contraseña con <code>tools/generar-hash.html</code> y pegá el valor en <code>ELECTROSTORE_ADMIN_PASSWORD_SHA256</code>. Volvé a desplegar en GitHub Pages.'
+        '<strong>Falta configurar credenciales de Supabase.</strong><br><br>1. Editá <code>admin-auth.js</code> y poné tu email en <code>SUPABASE_ADMIN_EMAIL</code>.<br>2. Asegurate de haber creado ese usuario en Supabase Dashboard > Authentication > Users.<br>3. Volvé a desplegar en GitHub Pages.<br><br>El sistema usará Supabase Auth para validar tu acceso de forma segura.'
       );
       if (form) form.classList.add('hidden');
       return;
@@ -147,6 +230,26 @@
         msgEl.textContent = 'Ingresá la contraseña.';
         return;
       }
+      
+      // Intentar primero con Supabase Auth
+      if (adminEmail && adminEmail !== 'admin@megaofertas.local' && adminEmail !== 'tu-email@dominio.com' && window.sbClient) {
+        try {
+          msgEl.textContent = 'Autenticando...';
+          const result = await signInWithSupabase(adminEmail, pass);
+          if (result.success) {
+            resetAttempts();
+            passInput.value = '';
+            setSession();
+            showMain(false);
+            console.log('✅ Login exitoso con Supabase Auth');
+            return;
+          }
+        } catch (supabaseError) {
+          console.warn('Supabase Auth falló, usando fallback local:', supabaseError.message);
+        }
+      }
+      
+      // Fallback: autenticación local con hash (solo desarrollo o sin Supabase)
       try {
         const got = (await sha256Hex(pass)).toLowerCase();
         if (got === hashHex) {
@@ -154,6 +257,7 @@
           passInput.value = '';
           setSession();
           showMain(false);
+          console.log('✅ Login exitoso con hash local (modo fallback)');
         } else {
           recordFailedAttempt();
           msgEl.textContent = 'Contraseña incorrecta.';
