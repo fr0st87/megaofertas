@@ -1,9 +1,43 @@
 /**
- * Catálogo, carrito y favoritos en localStorage (tienda + admin).
+ * Catálogo, carrito y favoritos.
+ * 
+ * Ahora usa Supabase como almacenamiento principal para el catálogo.
+ * El carrito y favoritos siguen en localStorage del navegador.
  */
-const STORE_KEY = 'electrostore_catalog';
+
+// Claves para localStorage (carrito y favoritos)
 const CART_KEY = 'electrostore_cart';
 const WISHLIST_KEY = 'electrostore_wishlist';
+
+// Tablas de Supabase
+const SUPABASE_TABLES = {
+  PRODUCTS: 'products',
+  CATEGORIES: 'categories'
+};
+
+/**
+ * Obtener cliente de Supabase configurado
+ */
+function getSupabaseClient() {
+  if (!window.supabase) {
+    console.warn('Supabase no está cargado.');
+    return null;
+  }
+  const config = window.SUPABASE_CONFIG;
+  if (!config || !config.url || !config.anonKey) {
+    console.warn('Supabase no está configurado correctamente.');
+    return null;
+  }
+  return window.supabase.createClient(config.url, config.anonKey);
+}
+
+/**
+ * Verificar si Supabase está disponible y configurado
+ */
+function isSupabaseAvailable() {
+  const client = getSupabaseClient();
+  return client !== null;
+}
 
 function getSiteRoot() {
   if (typeof window === 'undefined') return '';
@@ -124,6 +158,9 @@ function getDefaultCatalog() {
   };
 }
 
+/**
+ * Migración de datos para mantener compatibilidad
+ */
 function migrateCatalog(data) {
   let changed = false;
   for (const p of data.products) {
@@ -156,27 +193,107 @@ function migrateCatalog(data) {
       changed = true;
     }
   }
-  if (changed) saveCatalog(data);
   return data;
 }
 
-function loadCatalog() {
+/**
+ * Cargar catálogo desde Supabase
+ * Si falla, intenta cargar desde localStorage como fallback
+ */
+async function loadCatalog() {
+  // Intentar cargar desde Supabase primero
+  if (isSupabaseAvailable()) {
+    try {
+      const supabase = getSupabaseClient();
+      
+      // Cargar categorías
+      const { data: categories, error: catError } = await supabase
+        .from(SUPABASE_TABLES.CATEGORIES)
+        .select('*')
+        .order('name');
+      
+      // Cargar productos
+      const { data: products, error: prodError } = await supabase
+        .from(SUPABASE_TABLES.PRODUCTS)
+        .select('*')
+        .order('name');
+      
+      if (!catError && !prodError) {
+        const catalog = {
+          categories: categories || [],
+          products: products || []
+        };
+        
+        // Si está vacío, crear datos por defecto
+        if (catalog.categories.length === 0 && catalog.products.length === 0) {
+          const defaultCatalog = getDefaultCatalog();
+          await saveCatalog(defaultCatalog);
+          return defaultCatalog;
+        }
+        
+        return migrateCatalog(catalog);
+      }
+      
+      console.warn('Error cargando desde Supabase:', catError || prodError);
+    } catch (e) {
+      console.warn('Error conectando a Supabase:', e);
+    }
+  }
+  
+  // Fallback: cargar desde sessionStorage (modo offline/desarrollo)
   try {
-    const raw = sessionStorage.getItem(STORE_KEY);
+    const raw = sessionStorage.getItem('electrostore_catalog');
     if (raw) {
       const data = JSON.parse(raw);
-      if (data.categories && data.products) return migrateCatalog(data);
+      if (data.categories && data.products) {
+        console.log('Usando catálogo local (fallback)');
+        return migrateCatalog(data);
+      }
     }
   } catch (e) {
-    console.warn('No se pudo leer el catálogo', e);
+    console.warn('No se pudo leer el catálogo local', e);
   }
+  
+  // Crear datos por defecto si no hay nada
   const def = getDefaultCatalog();
   saveCatalog(def);
   return def;
 }
 
-function saveCatalog(data) {
-  sessionStorage.setItem(STORE_KEY, JSON.stringify(data));
+/**
+ * Guardar catálogo en Supabase
+ * También guarda en sessionStorage como caché local
+ */
+async function saveCatalog(data) {
+  // Guardar en Supabase si está disponible
+  if (isSupabaseAvailable()) {
+    try {
+      const supabase = getSupabaseClient();
+      
+      // Actualizar categorías (upsert)
+      if (data.categories && data.categories.length > 0) {
+        // Primero limpiar tabla
+        await supabase.from(SUPABASE_TABLES.CATEGORIES).delete().neq('id', '');
+        // Insertar nuevas
+        await supabase.from(SUPABASE_TABLES.CATEGORIES).insert(data.categories);
+      }
+      
+      // Actualizar productos (upsert)
+      if (data.products && data.products.length > 0) {
+        // Primero limpiar tabla
+        await supabase.from(SUPABASE_TABLES.PRODUCTS).delete().neq('id', '');
+        // Insertar nuevos
+        await supabase.from(SUPABASE_TABLES.PRODUCTS).insert(data.products);
+      }
+      
+      console.log('Catálogo guardado en Supabase');
+    } catch (e) {
+      console.error('Error guardando en Supabase:', e);
+    }
+  }
+  
+  // Siempre guardar en sessionStorage como caché
+  sessionStorage.setItem('electrostore_catalog', JSON.stringify(data));
 }
 
 /** Líneas del carrito: { productId, qty } */
