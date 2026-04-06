@@ -1,32 +1,9 @@
 /**
- * Catálogo, carrito y favoritos integrados con Supabase.
- * 
- * SEGURIDAD: 
- * - Los datos se guardan en Supabase, NO en localStorage del cliente
- * - Precios y stock se validan en el servidor mediante Row Level Security
- * - El cliente solo puede LECTURA de productos, no puede modificar precios
+ * Catálogo, carrito y favoritos en localStorage (tienda + admin).
  */
-
-const STORE_KEY = 'electrostore_catalog_cache';
+const STORE_KEY = 'electrostore_catalog';
 const CART_KEY = 'electrostore_cart';
 const WISHLIST_KEY = 'electrostore_wishlist';
-
-// Referencia al cliente de Supabase
-function getSupabaseClient() {
-  if (!window.sbClient) {
-    throw new Error('Supabase no inicializado. Verifica supabase-config.js');
-  }
-  return window.sbClient;
-}
-
-// Cache local temporal (solo para mejorar performance, no como fuente de verdad)
-let cachedCatalog = null;
-let cacheTimestamp = 0;
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
-
-function isCacheValid() {
-  return cachedCatalog && (Date.now() - cacheTimestamp < CACHE_TTL_MS);
-}
 
 function getSiteRoot() {
   if (typeof window === 'undefined') return '';
@@ -183,117 +160,23 @@ function migrateCatalog(data) {
   return data;
 }
 
-/**
- * Carga el catálogo desde Supabase (con cache local temporal)
- * Los datos vienen del servidor - el cliente NO puede modificarlos
- */
-async function loadCatalog() {
-  // Si hay cache válido, devolverlo (para performance)
-  if (isCacheValid()) {
-    return cachedCatalog;
-  }
-
+function loadCatalog() {
   try {
-    const client = getSupabaseClient();
-    
-    // Cargar categorías
-    const { data: categories, error: catError } = await client
-      .from('categories')
-      .select('*')
-      .order('name');
-    
-    if (catError) throw catError;
-    
-    // Cargar productos
-    const { data: products, error: prodError } = await client
-      .from('products')
-      .select('*')
-      .order('name');
-    
-    if (prodError) throw prodError;
-    
-    cachedCatalog = {
-      categories: categories || [],
-      products: products || []
-    };
-    cacheTimestamp = Date.now();
-    
-    // Guardar cache en sessionStorage como fallback offline
-    sessionStorage.setItem(STORE_KEY, JSON.stringify(cachedCatalog));
-    
-    return cachedCatalog;
+    const raw = sessionStorage.getItem(STORE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data.categories && data.products) return migrateCatalog(data);
+    }
   } catch (e) {
-    console.warn('Error cargando desde Supabase, usando cache local:', e);
-    // Fallback: intentar leer cache local
-    try {
-      const raw = sessionStorage.getItem(STORE_KEY);
-      if (raw) {
-        const data = JSON.parse(raw);
-        if (data.categories && data.products) {
-          cachedCatalog = data;
-          cacheTimestamp = Date.now();
-          return data;
-        }
-      }
-    } catch (fallbackError) {
-      console.error('No se pudo leer cache local:', fallbackError);
-    }
-    
-    // Último recurso: catálogo por defecto (solo desarrollo)
-    const def = getDefaultCatalog();
-    return def;
+    console.warn('No se pudo leer el catálogo', e);
   }
-}
-
-/**
- * Guarda catálogo en Supabase (SOLO para admin autenticado)
- * Requiere sesión de admin válida
- */
-async function saveCatalogToSupabase(data) {
-  try {
-    const client = getSupabaseClient();
-    
-    // Verificar sesión de admin
-    const adminSession = sessionStorage.getItem('supabase_admin_session');
-    if (!adminSession) {
-      throw new Error('No autorizado: sesión de admin requerida');
-    }
-    
-    // Actualizar categorías (upsert)
-    for (const cat of data.categories) {
-      const { error } = await client
-        .from('categories')
-        .upsert(cat, { onConflict: 'id' });
-      if (error) throw error;
-    }
-    
-    // Actualizar productos (upsert)
-    for (const prod of data.products) {
-      const { error } = await client
-        .from('products')
-        .upsert(prod, { onConflict: 'id' });
-      if (error) throw error;
-    }
-    
-    // Invalidar cache local
-    cachedCatalog = null;
-    cacheTimestamp = 0;
-    
-    console.log('✅ Catálogo guardado en Supabase');
-    return true;
-  } catch (e) {
-    console.error('❌ Error guardando en Supabase:', e);
-    throw e;
-  }
+  const def = getDefaultCatalog();
+  saveCatalog(def);
+  return def;
 }
 
 function saveCatalog(data) {
-  // En producción, esto debería llamar a saveCatalogToSupabase
-  // Por ahora guardamos en cache local para compatibilidad
-  cachedCatalog = data;
-  cacheTimestamp = Date.now();
   sessionStorage.setItem(STORE_KEY, JSON.stringify(data));
-  console.warn('⚠️ Datos guardados solo en cache local. Configura Supabase para persistencia.');
 }
 
 /** Líneas del carrito: { productId, qty } */
