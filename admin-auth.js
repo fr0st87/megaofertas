@@ -7,10 +7,12 @@
  *
  * EN PRODUCCIÓN CON SUPABASE:
  * - La autenticación real se hace contra Supabase Auth
- * - Este hash es solo como fallback/backup
- * - Configura usuarios en el dashboard de Supabase
+ * - Este hash es SOLO como fallback/backup si falla la conexión a Supabase
+ * - Configura usuarios en el dashboard de Supabase > Authentication > Users
+ * - El sistema intentará primero login con Supabase, si falla usará este hash local
  */
-window.ELECTROSTORE_ADMIN_PASSWORD_SHA256 = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'; // Hash de ejemplo - CAMBIAR
+window.ELECTROSTORE_ADMIN_PASSWORD_SHA256 = ''; // DEJAR VACÍO - Usando Supabase Auth
 
 // Configuración de Supabase Auth para admin
-window.SUPABASE_ADMIN_EMAIL = 'admin@megaofertas.local'; // Cambiar por email real en Supabase
+// IMPORTANTE: Poné aquí el email EXACTO que creaste en Supabase > Authentication > Users
+window.SUPABASE_ADMIN_EMAIL = 'skynet871012@gmail.com'; // ← Email configurado

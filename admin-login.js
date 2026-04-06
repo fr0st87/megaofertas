@@ -198,15 +198,16 @@
     }
 
     const hashHex = getHashHex();
+    const adminEmail = window.SUPABASE_ADMIN_EMAIL;
 
-    if (!hashHex) {
+    if (!hashHex && !adminEmail) {
       if (isLocalDev()) {
         showMain(true);
         setSession();
         return;
       }
       showGate(
-        '<strong>Falta configurar la contraseña.</strong><br><br>Editá <code>admin-auth.js</code> en el repositorio: generá el SHA-256 de tu contraseña con <code>tools/generar-hash.html</code> y pegá el valor en <code>ELECTROSTORE_ADMIN_PASSWORD_SHA256</code>. Volvé a desplegar en GitHub Pages.<br><br>O configurá Supabase Auth para autenticación segura.'
+        '<strong>Falta configurar credenciales de Supabase.</strong><br><br>1. Editá <code>admin-auth.js</code> y poné tu email en <code>SUPABASE_ADMIN_EMAIL</code>.<br>2. Asegurate de haber creado ese usuario en Supabase Dashboard > Authentication > Users.<br>3. Volvé a desplegar en GitHub Pages.<br><br>El sistema usará Supabase Auth para validar tu acceso de forma segura.'
       );
       if (form) form.classList.add('hidden');
       return;
@@ -231,8 +232,7 @@
       }
       
       // Intentar primero con Supabase Auth
-      const adminEmail = window.SUPABASE_ADMIN_EMAIL;
-      if (adminEmail && adminEmail !== 'admin@megaofertas.local' && window.sbClient) {
+      if (adminEmail && adminEmail !== 'admin@megaofertas.local' && adminEmail !== 'tu-email@dominio.com' && window.sbClient) {
         try {
           msgEl.textContent = 'Autenticando...';
           const result = await signInWithSupabase(adminEmail, pass);
