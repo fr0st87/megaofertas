@@ -137,35 +137,6 @@
   // Actualizar año del footer
   const yearEl = document.getElementById('footer-year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
-
-  // Manejar modal de búsqueda móvil
-  const searchMobileBtn = document.getElementById('search-mobile-btn');
-  const searchModal = document.getElementById('search-modal');
-  const modalSearchInput = document.getElementById('modal-search-input');
-  const searchInput = document.getElementById('store-search');
-
-  if (searchMobileBtn && searchModal && modalSearchInput) {
-    searchMobileBtn.addEventListener('click', () => {
-      searchModal.removeAttribute('hidden');
-      modalSearchInput.focus();
-      modalSearchInput.value = searchInput.value;
-    });
-  }
-
-  // Cerrar modal con botón close
-  document.querySelectorAll('[data-close-modal]').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      const modal = e.target.closest('.modal');
-      if (modal) modal.setAttribute('hidden', '');
-    });
-  });
-
-  // Cerrar modal con Escape
-  document.querySelectorAll('.modal').forEach((modal) => {
-    modal.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') modal.setAttribute('hidden', '');
-    });
-  });
 </script>
 </body>
 </html>

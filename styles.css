@@ -188,6 +188,36 @@ a:hover {
   transition: all var(--transition);
 }
 
+.icon-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1.1rem;
+  padding: 9px 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: inherit;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.icon-link:hover {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
+
+.cart-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 999px;
+  min-width: 20px;
+  text-align: center;
+}
+
 .icon-link--text:hover {
   border-color: var(--accent);
   color: var(--text);
