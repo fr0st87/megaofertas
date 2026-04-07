@@ -1,21 +1,11 @@
-```
-# Environment variables
+
+# Environment files
 .env
 .env.local
-.env.*
-
-# Logs
-*.log
+*.env.*
 
 # Dependencies
 node_modules/
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*.tmp
 
 # Build artifacts
 dist/
@@ -27,11 +17,27 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-*.egg-info/
-.eggs/
+.Python
+venv/
+.venv/
+.env
+.env.local
+
+# Logs
+*.log
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Coverage
-.coverage
 coverage/
 htmlcov/
 
@@ -58,4 +64,3 @@ Thumbs.db
 *.Z
 *.lz
 *.lzo
-```
