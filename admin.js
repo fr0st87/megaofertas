@@ -1,8 +1,9 @@
-function startAdminPanel() {
-  if (window.__electrostoreAdminMounted) return;
-  window.__electrostoreAdminMounted = true;
-
-  let catalog = loadCatalog();
+  async function startAdminPanel() {
+    if (window.__electrostoreAdminMounted) return;
+    window.__electrostoreAdminMounted = true;
+    
+    // Cargar catálogo desde Supabase o localStorage
+    let catalog = await loadCatalog();
 
   const catList = document.getElementById('cat-list');
   const catNameInput = document.getElementById('cat-name');
@@ -39,6 +40,13 @@ function startAdminPanel() {
 
   function persist() {
     saveCatalog(catalog);
+    // Forzar recarga de datos después de guardar
+    setTimeout(async () => {
+      catalog = await loadCatalog();
+      renderCategories();
+      fillProductCategorySelect();
+      renderProducts();
+    }, 500);
   }
 
   function renderCategories() {
@@ -401,3 +409,6 @@ function startAdminPanel() {
 }
 
 window.addEventListener('electrostore-admin-auth', startAdminPanel);
+
+// Exportar para uso global
+window.startAdminPanel = startAdminPanel;

@@ -19,8 +19,12 @@
     <p id="admin-login-msg" class="muted gate-msg"></p>
     <form id="admin-login-form" class="admin-login-form">
       <label class="gate-label">
+        Correo electrónico
+        <input type="email" id="admin-login-email" name="email" autocomplete="email" placeholder="tu@correo.com" required>
+      </label>
+      <label class="gate-label">
         Contraseña
-        <input type="password" id="admin-login-pass" name="password" autocomplete="current-password">
+        <input type="password" id="admin-login-pass" name="password" autocomplete="current-password" required>
       </label>
       <button type="submit" class="btn-primary gate-btn">Entrar</button>
     </form>
@@ -42,6 +46,7 @@
     </div>
 
     <h1 class="admin-title">Panel de administración</h1>
+    <p id="admin-user-info" class="admin-user-info muted hidden"></p>
     <p class="admin-intro muted">Imágenes recomendadas: subilas al repo en <code>img/productos/</code> y usá la ruta relativa (ej. <code>img/productos/tv.jpg</code>). El catálogo sigue guardándose en el navegador de cada visitante (localStorage); para un catálogo único público habría que versionar datos en el repositorio o usar backend.</p>
 
     <section class="admin-panel">
@@ -121,9 +126,10 @@
 </div>
 
 <script src="site-config.js"></script>
-<script src="admin-auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 <script src="store.js"></script>
-<script src="admin-login.js"></script>
+<script src="supabase-auth.js"></script>
 <script src="admin.js"></script>
 </body>
 </html>

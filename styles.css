@@ -2110,3 +2110,13 @@ body.modal-open {
     padding: 16px;
   }
 }
+
+/* Información del usuario en admin */
+.admin-user-info {
+  background: #f0fdf4;
+  border-left: 3px solid #22c55e;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.9rem;
+}
