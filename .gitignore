@@ -1,49 +1,51 @@
+# Documentation
+*.md.bak
+*.markdown.bak
 
-# Environment files
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+
+# Environment variables
 .env
 .env.local
-*.env.*
+.env.*
 
 # Dependencies
 node_modules/
-
-# Build artifacts
+venv/
+.venv/
+__pycache__/
+*.egg-info/
 dist/
 build/
 target/
+.gradle/
 
-# Python
-__pycache__/
+# Compiled files
 *.pyc
-*.pyo
-*.pyd
-.Python
-venv/
-.venv/
-.env
-.env.local
+*.class
+*.o
+*.obj
+*.so
+*.dll
+*.exe
 
-# Logs
-*.log
-
-# Editor/IDE
+# Editors
 .vscode/
 .idea/
 *.swp
 *.swo
-*.tmp
 
-# OS
+# System files
 .DS_Store
 Thumbs.db
 
 # Coverage
 coverage/
 htmlcov/
-
-# System files
-.DS_Store
-Thumbs.db
+.coverage
 
 # Compressed files
 *.zip
@@ -64,3 +66,7 @@ Thumbs.db
 *.Z
 *.lz
 *.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
