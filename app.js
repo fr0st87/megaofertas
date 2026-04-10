@@ -1,10 +1,19 @@
 (function () {
   'use strict';
 
-  let catalog = loadCatalog();
+  let catalog = { categories: [], products: [] };
   let activeCategoryId = 'all';
   let searchQuery = '';
   let sortMode = 'default';
+
+  // Inicializar la aplicación cuando el DOM esté listo
+  async function initApp() {
+    catalog = await loadCatalog();
+    renderFeatured();
+    renderFilters();
+    renderProducts();
+    updateCartUI();
+  }
 
   const container = document.getElementById('products');
   const cartContainer = document.getElementById('cart-items');
@@ -31,6 +40,9 @@
   const btnCheckout = document.getElementById('btn-checkout');
 
   let lastFocusEl = null;
+
+  // Iniciar la aplicación
+  initApp();
 
   function escapeHtml(s) {
     const d = document.createElement('div');
@@ -280,7 +292,6 @@
   }
 
   function renderProducts() {
-    catalog = loadCatalog();
     const list = productsFiltered();
     if (!container) return;
     container.innerHTML = '';
@@ -320,7 +331,6 @@
   }
 
   function openProductModal(productId) {
-    catalog = loadCatalog();
     const p = getProductById(productId);
     if (!p || !productModalBody) return;
     const imgSrc = resolveAssetUrl(p.img);
@@ -361,7 +371,6 @@
   }
 
   function addToCart(productId, qtyAdd) {
-    catalog = loadCatalog();
     const p = getProductById(productId);
     if (!p) return;
     if (p.stock != null && p.stock <= 0) {
@@ -385,7 +394,6 @@
   }
 
   function setLineQty(productId, qty) {
-    catalog = loadCatalog();
     const p = getProductById(productId);
     let lines = normalizeCartLines();
     const idx = lines.findIndex((l) => l.productId === productId);
@@ -399,7 +407,6 @@
   }
 
   function updateCartUI() {
-    catalog = loadCatalog();
     const lines = normalizeCartLines();
     if (cartContainer) cartContainer.innerHTML = '';
     let total = 0;
@@ -444,7 +451,6 @@
 
   function fillCheckoutSummary() {
     if (!checkoutSummary) return;
-    catalog = loadCatalog();
     const lines = normalizeCartLines();
     let total = 0;
     let html = '<ul class="checkout-lines">';
@@ -514,14 +520,12 @@
 
   document.addEventListener('storage', (e) => {
     if (e.key === STORE_KEY) {
-      catalog = loadCatalog();
       renderProducts();
       updateCartUI();
     }
   });
 
   window.addEventListener('focus', () => {
-    catalog = loadCatalog();
     renderProducts();
     updateCartUI();
   });
