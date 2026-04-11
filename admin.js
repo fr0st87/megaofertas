@@ -29,6 +29,49 @@
   const prodStockInput = document.getElementById('prod-stock');
   const codeValidationMsg = document.getElementById('code-validation-msg');
 
+  let pendingImageData = null;
+  let uploadcareUrl = null;
+
+  // Configurar Uploadcare
+  if (window.uploadcare) {
+    const widget = uploadcare.Widget('#uploadcare-input');
+    widget.multipartMinSize = 1;
+    widget.multipartMaxSize = 5 * 1024 * 1024; // 5 MB
+    widget.imageShrink = '1600x1600';
+    widget.previewStep = true;
+    
+    widget.change((fileInfo) => {
+      console.log('Uploadcare change event:', fileInfo);
+      if (!fileInfo) {
+        uploadcareUrl = null;
+        uploadcareStatus.textContent = '';
+        return;
+      }
+      
+      if (fileInfo.progress === 100 && fileInfo.cdnUrl) {
+        uploadcareUrl = fileInfo.cdnUrl;
+        prodImageUrlInput.value = uploadcareUrl;
+        prodImagePreview.src = uploadcareUrl;
+        prodImagePreview.classList.remove('hidden');
+        uploadcareStatus.textContent = '✅ Imagen lista: ' + fileInfo.originalFilename;
+        console.log('Imagen Uploadcare URL:', uploadcareUrl);
+      } else if (fileInfo.progress < 100) {
+        uploadcareStatus.textContent = `🔄 Subiendo... ${fileInfo.progress}%`;
+      }
+    });
+  } else {
+    console.warn('Uploadcare no está disponible');
+  }
+  
+  uploadcareBtn.addEventListener('click', () => {
+    if (window.uploadcare) {
+      const widget = uploadcare.Widget('#uploadcare-input');
+      widget.openDialog('camera, facebook, file, dropbox');
+    } else {
+      alert('Uploadcare no está disponible. Recargá la página.');
+    }
+  });
+
   function escapeHtml(s) {
     const d = document.createElement('div');
     d.textContent = s;
