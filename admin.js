@@ -44,6 +44,7 @@
     widget.previewStep = true;
     
     widget.change((fileInfo) => {
+      console.log('Uploadcare change event:', fileInfo);
       if (!fileInfo) {
         uploadcareUrl = null;
         uploadcareStatus.textContent = '';
@@ -56,10 +57,13 @@
         prodImagePreview.src = uploadcareUrl;
         prodImagePreview.classList.remove('hidden');
         uploadcareStatus.textContent = '✅ Imagen lista: ' + fileInfo.originalFilename;
+        console.log('Imagen Uploadcare URL:', uploadcareUrl);
       } else if (fileInfo.progress < 100) {
         uploadcareStatus.textContent = `🔄 Subiendo... ${fileInfo.progress}%`;
       }
     });
+  } else {
+    console.warn('Uploadcare no está disponible');
   }
   
   uploadcareBtn.addEventListener('click', () => {
@@ -89,8 +93,9 @@
   }
 
   function renderCategories() {
+    console.log('Renderizando categorías:', catalog.categories);
     catList.innerHTML = '';
-    if (!catalog.categories.length) {
+    if (!catalog.categories || catalog.categories.length === 0) {
       catList.innerHTML = '<li class="admin-empty">No hay categorías. Crea la primera arriba.</li>';
       return;
     }
@@ -131,13 +136,22 @@
   catForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = catNameInput.value.trim();
-    if (!name) return;
+    console.log('Enviando categoría:', name, 'editId:', catEditingId.value);
+    if (!name) {
+      console.warn('Nombre de categoría vacío');
+      return;
+    }
     const editId = catEditingId.value;
     if (editId) {
       const c = catalog.categories.find((x) => x.id === editId);
-      if (c) c.name = name;
+      if (c) {
+        c.name = name;
+        console.log('Categoría actualizada:', c);
+      }
     } else {
-      catalog.categories.push({ id: uid(), name });
+      const newCat = { id: uid(), name };
+      console.log('Nueva categoría:', newCat);
+      catalog.categories.push(newCat);
     }
     persist();
     resetCategoryForm();
@@ -162,8 +176,12 @@
   }
 
   function fillProductCategorySelect() {
+    console.log('Llenando select de categorías, disponibles:', catalog.categories);
     const cur = prodCategorySelect.value;
     prodCategorySelect.innerHTML = '<option value="">— Sin categoría —</option>';
+    if (!catalog.categories || catalog.categories.length === 0) {
+      console.warn('No hay categorías disponibles');
+    }
     catalog.categories.forEach((c) => {
       prodCategorySelect.innerHTML += `<option value="${c.id}">${escapeHtml(c.name)}</option>`;
     });
@@ -430,6 +448,7 @@
   }
 
   renderCategories();
+  console.log('Inicializando panel admin, categorías iniciales:', catalog.categories);
   fillProductCategorySelect();
   renderProducts();
 }
