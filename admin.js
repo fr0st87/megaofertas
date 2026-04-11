@@ -20,7 +20,9 @@
   const prodCurrencySelect = document.getElementById('prod-currency');
   const prodCategorySelect = document.getElementById('prod-category');
   const prodImageUrlInput = document.getElementById('prod-image-url');
-  const prodImageInput = document.getElementById('prod-image');
+  const uploadcareInput = document.getElementById('uploadcare-input');
+  const uploadcareBtn = document.getElementById('uploadcare-btn');
+  const uploadcareStatus = document.getElementById('uploadcare-status');
   const prodImagePreview = document.getElementById('prod-image-preview');
   const prodSubmitBtn = document.getElementById('prod-submit');
   const prodCancelBtn = document.getElementById('prod-cancel');
@@ -31,6 +33,43 @@
   const codeValidationMsg = document.getElementById('code-validation-msg');
 
   let pendingImageData = null;
+  let uploadcareUrl = null;
+
+  // Configurar Uploadcare
+  if (window.uploadcare) {
+    const widget = uploadcare.Widget('#uploadcare-input');
+    widget.multipartMinSize = 1;
+    widget.multipartMaxSize = 5 * 1024 * 1024; // 5 MB
+    widget.imageShrink = '1600x1600';
+    widget.previewStep = true;
+    
+    widget.change((fileInfo) => {
+      if (!fileInfo) {
+        uploadcareUrl = null;
+        uploadcareStatus.textContent = '';
+        return;
+      }
+      
+      if (fileInfo.progress === 100 && fileInfo.cdnUrl) {
+        uploadcareUrl = fileInfo.cdnUrl;
+        prodImageUrlInput.value = uploadcareUrl;
+        prodImagePreview.src = uploadcareUrl;
+        prodImagePreview.classList.remove('hidden');
+        uploadcareStatus.textContent = '✅ Imagen lista: ' + fileInfo.originalFilename;
+      } else if (fileInfo.progress < 100) {
+        uploadcareStatus.textContent = `🔄 Subiendo... ${fileInfo.progress}%`;
+      }
+    });
+  }
+  
+  uploadcareBtn.addEventListener('click', () => {
+    if (window.uploadcare) {
+      const widget = uploadcare.Widget('#uploadcare-input');
+      widget.openDialog('camera, facebook, file, dropbox');
+    } else {
+      alert('Uploadcare no está disponible. Recargá la página.');
+    }
+  });
 
   function escapeHtml(s) {
     const d = document.createElement('div');
@@ -184,7 +223,8 @@
     if (prodFeaturedInput) prodFeaturedInput.checked = !!p.featured;
     if (prodStockInput) prodStockInput.value = p.stock != null ? String(p.stock) : '';
     pendingImageData = null;
-    prodImageInput.value = '';
+    uploadcareUrl = null;
+    uploadcareInput.value = '';
     if (isDataUrl(p.img)) {
       prodImageUrlInput.value = '';
       prodImagePreview.src = p.img;
@@ -194,6 +234,7 @@
       prodImagePreview.src = resolveAssetUrl(p.img);
       prodImagePreview.classList.remove('hidden');
     }
+    uploadcareStatus.textContent = '';
     prodSubmitBtn.textContent = 'Guardar producto';
     prodCancelBtn.classList.remove('hidden');
     prodForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -207,10 +248,12 @@
     prodCurrencySelect.value = 'USD';
     prodCategorySelect.value = '';
     prodImageUrlInput.value = '';
-    prodImageInput.value = '';
+    uploadcareInput.value = '';
     pendingImageData = null;
+    uploadcareUrl = null;
     prodImagePreview.src = '';
     prodImagePreview.classList.add('hidden');
+    uploadcareStatus.textContent = '';
     if (prodDescriptionInput) prodDescriptionInput.value = '';
     if (prodFeaturedInput) prodFeaturedInput.checked = false;
     if (prodStockInput) prodStockInput.value = '';
@@ -221,35 +264,14 @@
 
   prodCancelBtn.addEventListener('click', () => resetProductForm());
 
-  prodImageInput.addEventListener('change', () => {
-    const file = prodImageInput.files && prodImageInput.files[0];
-    if (!file || !file.type.startsWith('image/')) {
-      if (file) alert('Elige un archivo de imagen (JPG, PNG, WEBP, etc.).');
-      return;
-    }
-    if (file.size > 1.2 * 1024 * 1024) {
-      alert(
-        'La imagen supera ~1,2 MB: en GitHub Pages conviene usar archivos en img/productos/ y la ruta en el campo URL.'
-      );
-      prodImageInput.value = '';
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      pendingImageData = reader.result;
-      prodImagePreview.src = pendingImageData;
-      prodImagePreview.classList.remove('hidden');
-      // Guardar nombre del archivo original para renombrarlo luego
-      prodImageInput.dataset.originalName = file.name;
-    };
-    reader.readAsDataURL(file);
-  });
-
   prodClearImageBtn.addEventListener('click', () => {
     pendingImageData = '';
-    prodImageInput.value = '';
+    uploadcareUrl = null;
+    uploadcareInput.value = '';
+    prodImageUrlInput.value = '';
     prodImagePreview.src = '';
     prodImagePreview.classList.add('hidden');
+    uploadcareStatus.textContent = '';
   });
 
   // Validación en tiempo real del código de producto
@@ -354,6 +376,8 @@
             p.img = pendingImageData;
             p.imgFileName = code; // Guardar el código como nombre para la imagen
           }
+        } else if (uploadcareUrl) {
+          p.img = uploadcareUrl;
         } else if (urlVal) {
           p.img = urlVal;
         }
@@ -362,6 +386,8 @@
       let img;
       if (pendingImageData) {
         img = pendingImageData;
+      } else if (uploadcareUrl) {
+        img = uploadcareUrl;
       } else if (urlVal) {
         img = urlVal;
       } else {

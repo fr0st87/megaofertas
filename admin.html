@@ -104,12 +104,14 @@
         </label>
         <label class="full-width">
           Ruta o URL de imagen
-          <input type="text" id="prod-image-url" placeholder="img/productos/mi-foto.jpg">
+          <input type="text" id="prod-image-url" placeholder="https://ucarecdn.com/... o img/productos/mi-foto.jpg">
         </label>
-        <p class="muted full-width field-hint">En GitHub Pages: commiteá la foto en <code>img/productos/</code> y escribí la ruta. Las rutas absolutas tipo <code>/img/...</code> se combinan con <code>site-config.js</code> si usás sitio de proyecto.</p>
+        <p class="muted full-width field-hint">Opción A: Subí la imagen a Uploadcare (gratis, sin registro) y pegá la URL que te dan. Opción B: En GitHub Pages, commiteá la foto en <code>img/productos/</code> y escribí la ruta.</p>
         <label class="full-width">
-          O subir archivo (solo pruebas locales; ocupa espacio en localStorage)
-          <input type="file" id="prod-image" accept="image/*">
+          Subir imagen a Uploadcare (recomendado)
+          <input type="uploadcare" id="uploadcare-input" role="uploadcare-uploader">
+          <button type="button" class="btn-secondary" id="uploadcare-btn">📷 Abrir uploader de Uploadcare</button>
+          <span id="uploadcare-status" class="muted" style="margin-left: 10px;"></span>
         </label>
         <div class="image-preview-wrap full-width">
           <img id="prod-image-preview" class="admin-preview hidden" alt="Vista previa">
@@ -126,6 +128,20 @@
 </div>
 
 <script src="site-config.js"></script>
+<!-- Uploadcare Widget -->
+<script>
+  window.UPLOADCARE_MANUAL_START = true;
+  window.uploadcare = window.uploadcare || {};
+  window.uploadcare.locale = window.uploadcare.locale || {};
+  window.uploadcare.locale.es = {
+    uploading: "Subiendo...",
+    uploaded: "¡Listo!",
+    uploadFailed: "Error al subir",
+    info: "Subí tus imágenes a Uploadcare (gratis, sin registro)",
+    fileTypes: "Imágenes (JPG, PNG, WEBP, GIF)"
+  };
+</script>
+<script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="store.js"></script>
