@@ -287,6 +287,11 @@
       }, 15000);
     }
 
+    // Limpiar intervalo cuando la página se descarga para evitar memory leaks
+    window.addEventListener('beforeunload', () => {
+      if (featuredInterval) clearInterval(featuredInterval);
+    });
+
     renderCurrentSlide();
     startFeaturedRotation();
   }
@@ -519,7 +524,7 @@
   if (footerYear) footerYear.textContent = String(new Date().getFullYear());
 
   document.addEventListener('storage', (e) => {
-    if (e.key === STORE_KEY) {
+    if (e.key === 'electrostore_catalog') {
       renderProducts();
       updateCartUI();
     }
