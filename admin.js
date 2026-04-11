@@ -20,9 +20,6 @@
   const prodCurrencySelect = document.getElementById('prod-currency');
   const prodCategorySelect = document.getElementById('prod-category');
   const prodImageUrlInput = document.getElementById('prod-image-url');
-  const uploadcareInput = document.getElementById('uploadcare-input');
-  const uploadcareBtn = document.getElementById('uploadcare-btn');
-  const uploadcareStatus = document.getElementById('uploadcare-status');
   const prodImagePreview = document.getElementById('prod-image-preview');
   const prodSubmitBtn = document.getElementById('prod-submit');
   const prodCancelBtn = document.getElementById('prod-cancel');
@@ -240,9 +237,6 @@
     if (prodDescriptionInput) prodDescriptionInput.value = p.description || '';
     if (prodFeaturedInput) prodFeaturedInput.checked = !!p.featured;
     if (prodStockInput) prodStockInput.value = p.stock != null ? String(p.stock) : '';
-    pendingImageData = null;
-    uploadcareUrl = null;
-    uploadcareInput.value = '';
     if (isDataUrl(p.img)) {
       prodImageUrlInput.value = '';
       prodImagePreview.src = p.img;
@@ -252,7 +246,6 @@
       prodImagePreview.src = resolveAssetUrl(p.img);
       prodImagePreview.classList.remove('hidden');
     }
-    uploadcareStatus.textContent = '';
     prodSubmitBtn.textContent = 'Guardar producto';
     prodCancelBtn.classList.remove('hidden');
     prodForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -266,12 +259,8 @@
     prodCurrencySelect.value = 'USD';
     prodCategorySelect.value = '';
     prodImageUrlInput.value = '';
-    uploadcareInput.value = '';
-    pendingImageData = null;
-    uploadcareUrl = null;
     prodImagePreview.src = '';
     prodImagePreview.classList.add('hidden');
-    uploadcareStatus.textContent = '';
     if (prodDescriptionInput) prodDescriptionInput.value = '';
     if (prodFeaturedInput) prodFeaturedInput.checked = false;
     if (prodStockInput) prodStockInput.value = '';
@@ -283,13 +272,9 @@
   prodCancelBtn.addEventListener('click', () => resetProductForm());
 
   prodClearImageBtn.addEventListener('click', () => {
-    pendingImageData = '';
-    uploadcareUrl = null;
-    uploadcareInput.value = '';
     prodImageUrlInput.value = '';
     prodImagePreview.src = '';
     prodImagePreview.classList.add('hidden');
-    uploadcareStatus.textContent = '';
   });
 
   // Validación en tiempo real del código de producto
@@ -386,31 +371,16 @@
         } else {
           p.featured = false;
         }
-        if (pendingImageData !== null) {
-          if (pendingImageData === '') {
-            p.img = urlVal || fallbackImg;
-          } else if (pendingImageData) {
-            // Si es datos en base64, usarlos; luego se pueden exportar con el nombre del código
-            p.img = pendingImageData;
-            p.imgFileName = code; // Guardar el código como nombre para la imagen
-          }
-        } else if (uploadcareUrl) {
-          p.img = uploadcareUrl;
-        } else if (urlVal) {
+        // Usar la ruta de imagen local proporcionada
+        if (urlVal) {
           p.img = urlVal;
+        } else {
+          p.img = fallbackImg;
         }
       }
     } else {
-      let img;
-      if (pendingImageData) {
-        img = pendingImageData;
-      } else if (uploadcareUrl) {
-        img = uploadcareUrl;
-      } else if (urlVal) {
-        img = urlVal;
-      } else {
-        img = fallbackImg;
-      }
+      // Nuevo producto: usar la ruta de imagen local o fallback
+      const img = urlVal || fallbackImg;
       const newId = uid();
       if (featured) {
         catalog.products.forEach((x) => {
@@ -425,7 +395,6 @@
         currency,
         categoryId,
         img,
-        imgFileName: pendingImageData ? code : null,
         description,
         featured: !!featured,
         stock

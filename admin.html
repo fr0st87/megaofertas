@@ -103,16 +103,10 @@
           <input type="number" id="prod-stock" min="0" step="1" placeholder="Ej. 10">
         </label>
         <label class="full-width">
-          Ruta o URL de imagen
-          <input type="text" id="prod-image-url" placeholder="https://ucarecdn.com/... o img/productos/mi-foto.jpg">
+          Ruta de imagen local
+          <input type="text" id="prod-image-url" placeholder="img/productos/mi-foto.jpg">
         </label>
-        <p class="muted full-width field-hint">Opción A: Subí la imagen a Uploadcare (gratis, sin registro) y pegá la URL que te dan. Opción B: En GitHub Pages, commiteá la foto en <code>img/productos/</code> y escribí la ruta.</p>
-        <label class="full-width">
-          Subir imagen a Uploadcare (recomendado)
-          <input type="uploadcare" id="uploadcare-input" role="uploadcare-uploader">
-          <button type="button" class="btn-secondary" id="uploadcare-btn">📷 Abrir uploader de Uploadcare</button>
-          <span id="uploadcare-status" class="muted" style="margin-left: 10px;"></span>
-        </label>
+        <p class="muted full-width field-hint">Subí la imagen a la carpeta <code>img/productos/</code> en tu repositorio y escribí la ruta relativa (ej: <code>img/productos/tv.jpg</code>).</p>
         <div class="image-preview-wrap full-width">
           <img id="prod-image-preview" class="admin-preview hidden" alt="Vista previa">
           <button type="button" class="btn-secondary btn-small" id="prod-clear-image">Quitar imagen nueva</button>

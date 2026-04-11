@@ -99,8 +99,7 @@ function getDefaultCatalog() {
         img: phImg('TV 50" 4K'),
         description: 'Panel 4K UHD, HDR y smart TV integrado. Ideal para salón.',
         featured: true,
-        stock: null,
-        imgFileName: 'CP-REF-001'
+        stock: null
       },
       {
         id: uid(),
@@ -112,8 +111,7 @@ function getDefaultCatalog() {
         img: phImg('Nevera'),
         description: 'No frost, dispensador y gran capacidad familiar.',
         featured: false,
-        stock: null,
-        imgFileName: 'CP-NEV-001'
+        stock: null
       },
       {
         id: uid(),
@@ -125,8 +123,7 @@ function getDefaultCatalog() {
         img: phImg('Lavadora'),
         description: 'Carga frontal, ahorro energético y múltiples programas.',
         featured: false,
-        stock: 12,
-        imgFileName: 'CP-LAV-001'
+        stock: 12
       },
       {
         id: uid(),
@@ -138,8 +135,7 @@ function getDefaultCatalog() {
         img: phImg('Microondas'),
         description: '25 L, grill, programas automáticos y panel táctil.',
         featured: false,
-        stock: 20,
-        imgFileName: 'CP-MIC-001'
+        stock: 20
       },
       {
         id: uid(),
@@ -151,8 +147,7 @@ function getDefaultCatalog() {
         img: phImg('Aire A/C'),
         description: 'Frío/calor, eficiencia A, kit de instalación básico.',
         featured: false,
-        stock: 8,
-        imgFileName: 'CP-CLI-001'
+        stock: 8
       }
     ]
   };
@@ -178,10 +173,6 @@ function migrateCatalog(data) {
     }
     if (typeof p.code !== 'string') {
       p.code = '';
-      changed = true;
-    }
-    if (typeof p.imgFileName !== 'string') {
-      p.imgFileName = null;
       changed = true;
     }
     if (p.stock !== null && p.stock !== undefined && typeof p.stock !== 'number') {
