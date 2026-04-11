@@ -1,13 +1,12 @@
 /**
- * Catálogo, carrito y favoritos.
+ * Catálogo y carrito.
  * 
- * Ahora usa Supabase como almacenamiento principal para el catálogo.
- * El carrito y favoritos siguen en localStorage del navegador.
+ * Usa Supabase como almacenamiento principal para el catálogo.
+ * El carrito sigue en localStorage del navegador.
  */
 
-// Claves para localStorage (carrito y favoritos)
+// Clave para localStorage (carrito)
 const CART_KEY = 'electrostore_cart';
-const WISHLIST_KEY = 'electrostore_wishlist';
 
 // Tablas de Supabase
 const SUPABASE_TABLES = {
@@ -304,31 +303,4 @@ function loadCartLines() {
 
 function saveCartLines(lines) {
   localStorage.setItem(CART_KEY, JSON.stringify(lines));
-}
-
-function loadWishlistIds() {
-  try {
-    const raw = localStorage.getItem(WISHLIST_KEY);
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr.filter((id) => typeof id === 'string') : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveWishlistIds(ids) {
-  localStorage.setItem(WISHLIST_KEY, JSON.stringify(ids));
-}
-
-function toggleWishlistId(productId) {
-  let ids = loadWishlistIds();
-  if (ids.includes(productId)) ids = ids.filter((id) => id !== productId);
-  else ids.push(productId);
-  saveWishlistIds(ids);
-  return ids.includes(productId);
-}
-
-function isInWishlist(productId) {
-  return loadWishlistIds().includes(productId);
 }

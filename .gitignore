@@ -1,46 +1,44 @@
-# Documentation
-*.md.bak
-*.markdown.bak
-
+```
 # Logs and temp files
 *.log
 *.tmp
-*.temp
+*.swp
 
-# Environment variables
+# Environment
 .env
 .env.local
 .env.*
 
+# Editors
+.vscode/
+.idea/
+
 # Dependencies
 node_modules/
-venv/
 .venv/
+venv/
 __pycache__/
-*.egg-info/
+.mypy_cache/
+.pytest_cache/
 dist/
 build/
 target/
 .gradle/
 
+# OS generated files
+.DS_Store
+Thumbs.db
+
 # Compiled files
 *.pyc
 *.class
 *.o
-*.obj
-*.so
-*.dll
 *.exe
-
-# Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# System files
-.DS_Store
-Thumbs.db
+*.dll
+*.so
+*.a
+*.obj
+*.out
 
 # Coverage
 coverage/
@@ -70,3 +68,4 @@ htmlcov/
 *.tar.bz2
 *.tar.xz
 *.tar.zst
+```
