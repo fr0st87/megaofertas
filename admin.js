@@ -2,34 +2,44 @@
     if (window.__electrostoreAdminMounted) return;
     window.__electrostoreAdminMounted = true;
     
-    // Cargar catálogo desde Supabase o localStorage
+    console.log('Iniciando panel de administración...');
+    
+    // Obtener referencias al DOM primero (antes de cualquier await)
+    const catList = document.getElementById('cat-list');
+    const catNameInput = document.getElementById('cat-name');
+    const catForm = document.getElementById('cat-form');
+    const catEditingId = document.getElementById('cat-editing-id');
+    const catSubmitBtn = document.getElementById('cat-submit');
+  
+    const prodList = document.getElementById('prod-list');
+    const prodForm = document.getElementById('prod-form');
+    const prodIdInput = document.getElementById('prod-id');
+    const prodCodeInput = document.getElementById('prod-code');
+    const prodNameInput = document.getElementById('prod-name');
+    const prodPriceInput = document.getElementById('prod-price');
+    const prodCurrencySelect = document.getElementById('prod-currency');
+    const prodCategorySelect = document.getElementById('prod-category');
+    const prodImageUrlInput = document.getElementById('prod-image-url');
+    const prodImagePreview = document.getElementById('prod-image-preview');
+    const prodSubmitBtn = document.getElementById('prod-submit');
+    const prodCancelBtn = document.getElementById('prod-cancel');
+    const prodClearImageBtn = document.getElementById('prod-clear-image');
+    const prodDescriptionInput = document.getElementById('prod-description');
+    const prodFeaturedInput = document.getElementById('prod-featured');
+    const prodStockInput = document.getElementById('prod-stock');
+    const codeValidationMsg = document.getElementById('code-validation-msg');
+    
+    // Verificar que todos los elementos existan
+    if (!catList || !prodList || !catForm || !prodForm) {
+      console.error('Elementos del DOM no encontrados. Verifica admin.html');
+      return;
+    }
+    
+    let pendingImageData = null;
+    
+    // Cargar catálogo después de tener el DOM listo
     let catalog = await loadCatalog();
-
-  const catList = document.getElementById('cat-list');
-  const catNameInput = document.getElementById('cat-name');
-  const catForm = document.getElementById('cat-form');
-  const catEditingId = document.getElementById('cat-editing-id');
-  const catSubmitBtn = document.getElementById('cat-submit');
-
-  const prodList = document.getElementById('prod-list');
-  const prodForm = document.getElementById('prod-form');
-  const prodIdInput = document.getElementById('prod-id');
-  const prodCodeInput = document.getElementById('prod-code');
-  const prodNameInput = document.getElementById('prod-name');
-  const prodPriceInput = document.getElementById('prod-price');
-  const prodCurrencySelect = document.getElementById('prod-currency');
-  const prodCategorySelect = document.getElementById('prod-category');
-  const prodImageUrlInput = document.getElementById('prod-image-url');
-  const prodImagePreview = document.getElementById('prod-image-preview');
-  const prodSubmitBtn = document.getElementById('prod-submit');
-  const prodCancelBtn = document.getElementById('prod-cancel');
-  const prodClearImageBtn = document.getElementById('prod-clear-image');
-  const prodDescriptionInput = document.getElementById('prod-description');
-  const prodFeaturedInput = document.getElementById('prod-featured');
-  const prodStockInput = document.getElementById('prod-stock');
-  const codeValidationMsg = document.getElementById('code-validation-msg');
-
-  let pendingImageData = null;
+    console.log('Catálogo cargado:', catalog);
 
   function escapeHtml(s) {
     const d = document.createElement('div');
@@ -39,13 +49,11 @@
 
   function persist() {
     saveCatalog(catalog);
-    // Forzar recarga de datos después de guardar
-    setTimeout(async () => {
-      catalog = await loadCatalog();
-      renderCategories();
-      fillProductCategorySelect();
-      renderProducts();
-    }, 500);
+    // Recargar datos inmediatamente después de guardar (sin delay)
+    catalog = migrateCatalog(catalog); // Asegurar migración
+    renderCategories();
+    fillProductCategorySelect();
+    renderProducts();
   }
 
   function renderCategories() {
@@ -375,8 +383,9 @@
     resetProductForm();
   }
 
+  // Inicializar panel después de cargar catálogo y DOM
+  console.log('Inicializando panel admin, categorías cargadas:', catalog.categories);
   renderCategories();
-  console.log('Inicializando panel admin, categorías iniciales:', catalog.categories);
   fillProductCategorySelect();
   renderProducts();
 }
