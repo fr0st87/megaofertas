@@ -191,7 +191,21 @@ function migrateCatalog(data) {
  * Si falla, intenta cargar desde localStorage como fallback
  */
 async function loadCatalog() {
-  // Intentar cargar desde Supabase primero
+  // Intentar cargar desde sessionStorage primero (más rápido y confiable)
+  try {
+    const raw = sessionStorage.getItem('electrostore_catalog');
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data.categories && data.products) {
+        console.log('Catálogo cargado desde sessionStorage:', data.categories.length, 'categorías');
+        return migrateCatalog(data);
+      }
+    }
+  } catch (e) {
+    console.warn('No se pudo leer el catálogo de sessionStorage', e);
+  }
+  
+  // Si no hay nada en sessionStorage, intentar Supabase
   if (isSupabaseAvailable()) {
     try {
       const supabase = getSupabaseClient();
@@ -221,6 +235,7 @@ async function loadCatalog() {
           return defaultCatalog;
         }
         
+        console.log('Catálogo cargado desde Supabase:', catalog.categories.length, 'categorías');
         return migrateCatalog(catalog);
       }
       
@@ -230,21 +245,8 @@ async function loadCatalog() {
     }
   }
   
-  // Fallback: cargar desde sessionStorage (modo offline/desarrollo)
-  try {
-    const raw = sessionStorage.getItem('electrostore_catalog');
-    if (raw) {
-      const data = JSON.parse(raw);
-      if (data.categories && data.products) {
-        console.log('Usando catálogo local (fallback)');
-        return migrateCatalog(data);
-      }
-    }
-  } catch (e) {
-    console.warn('No se pudo leer el catálogo local', e);
-  }
-  
   // Crear datos por defecto si no hay nada
+  console.log('Creando catálogo por defecto');
   const def = getDefaultCatalog();
   saveCatalog(def);
   return def;
@@ -255,7 +257,15 @@ async function loadCatalog() {
  * También guarda en sessionStorage como caché local
  */
 async function saveCatalog(data) {
-  // Guardar en Supabase si está disponible
+  // Siempre guardar en sessionStorage como caché principal
+  try {
+    sessionStorage.setItem('electrostore_catalog', JSON.stringify(data));
+    console.log('Catálogo guardado en sessionStorage');
+  } catch (e) {
+    console.error('Error guardando en sessionStorage:', e);
+  }
+  
+  // Guardar en Supabase si está disponible (solo como backup)
   if (isSupabaseAvailable()) {
     try {
       const supabase = getSupabaseClient();
@@ -279,11 +289,9 @@ async function saveCatalog(data) {
       console.log('Catálogo guardado en Supabase');
     } catch (e) {
       console.error('Error guardando en Supabase:', e);
+      console.warn('Se usará el catálogo local de sessionStorage');
     }
   }
-  
-  // Siempre guardar en sessionStorage como caché
-  sessionStorage.setItem('electrostore_catalog', JSON.stringify(data));
 }
 
 /** Líneas del carrito: { productId, qty } */
